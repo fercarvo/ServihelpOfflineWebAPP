@@ -94,11 +94,33 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="card">
-                <div class="card-header">Lineas Informe por Proyecto</div>
+                <div class="card-header"> 
+                    <table>
+                        <tr>
+                            <td>
+                                <form id="ubicacion_select" ng-submit="nueva_linea(ubicacion_seleccionada)">
+                                    <select class="form-control" 
+                                        ng-model="ubicacion_seleccionada"
+                                        ng-options="u.tb_proyecto_ubicaciones_id as u.ubicacion for u in ubicaciones">
+                                        <option></option>
+                                    </select>
+                                </form>  
+                            </td>
+                            <td>
+                                <button form="ubicacion_select" type="submit" class="btn btn-info">
+                                    <span class="fa fa-plus" aria-hidden="true"></span>
+                                </button>
+                                <button class="btn btn-info" ng-click="cerrar_lineas_informe()">Cerrar</button>
+                            </td>
+                        </tr>
+                    </table>              
+                    
+                </div>
                 <div class="card-body">
                     <table class="table">
                             <thead>
                                 <tr>
+                                    <th scope="col">Ubicación</th>
                                     <th scope="col">Fase</th>
                                     <th scope="col">Tarea</th>
                                     <th scope="col">Producto</th>
@@ -109,21 +131,38 @@
                             <tbody>
                                 <tr ng-repeat="linea in informe_actual.lineas">
                                     <td>
-                                        <select form="form_lineas" class="form-control" required ng-model="linea.fase" ng-change="cambio_fase(linea.fase, linea)">
-                                            <option selected disabled value=""></option>
-                                            <option ng-repeat="f in linea.data.fases" value="{{f.c_projectphase_id}}">{{f.fase}}</option>
+                                        <select 
+                                            form="form_lineas" class="form-control" required 
+                                            ng-model="linea.ubicacion" 
+                                            ng-change="cambio_ubicacion(linea.ubicacion, linea)"
+                                            ng-options="u.tb_proyecto_ubicaciones_id as u.ubicacion for u in linea.data.ubicaciones"
+                                            ng-init="linea.ubicacion=linea.data.ubicaciones[0].tb_proyecto_ubicaciones_id; cambio_ubicacion(linea.ubicacion, linea)">
                                         </select>
                                     </td>
                                     <td>
-                                        <select form="form_lineas" class="form-control" required ng-model="linea.tarea" ng-change="cambio_tarea(linea.tarea, linea)">
-                                            <option selected disabled value=""></option>
-                                            <option ng-repeat="t in linea.data.tareas" value="{{t.c_projecttask_id}}">{{t.tarea}}</option>
+                                        <select 
+                                            form="form_lineas" class="form-control" required 
+                                            ng-model="linea.fase" 
+                                            ng-change="cambio_fase(linea.fase, linea)"
+                                            ng-options="f.c_projectphase_id as f.fase for f in linea.data.fases"
+                                            ng-init="linea.fase = linea.data.fases[0].c_projectphase_id">
                                         </select>
                                     </td>
                                     <td>
-                                        <select form="form_lineas" class="form-control" required ng-model="linea.producto">
-                                            <option selected disabled value=""></option>
-                                            <option ng-repeat="l in linea.data.lineas_tarea" value="{{l.m_product_id}}">{{l.producto}}</option>
+                                        <select 
+                                            form="form_lineas" class="form-control" required 
+                                            ng-model="linea.tarea" 
+                                            ng-change="cambio_tarea(linea.tarea, linea)"
+                                            ng-options="t.c_projecttask_id as t.tarea for t in linea.data.tareas"
+                                            ng-init="linea.tarea = linea.data.tareas[0].c_projecttask_id">
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select 
+                                            form="form_lineas" class="form-control" required 
+                                            ng-model="linea.producto"
+                                            ng-options="l.m_product_id as l.producto for l in linea.data.lineas_tarea"
+                                            ng-init="linea.producto = linea.data.lineas_tarea[0].m_product_id">
                                         </select>
                                     </td>
                                     <td> <input class="form-control" form="form_lineas" type="number" required="required" ng-model="linea.qty"></th>
@@ -136,12 +175,6 @@
                             </tbody>
                     </table>       
                 </div>
-                <form class="card-footer">
-                    <button type="submit" class="btn btn-info" ng-click="nueva_linea()">
-                        <span class="fa fa-plus" aria-hidden="true"></span>
-                    </button>
-                    <button type="submit" class="btn btn-info" ng-click="cerrar_lineas_informe()">Cerrar</button>
-                </form>
             </div>            
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->

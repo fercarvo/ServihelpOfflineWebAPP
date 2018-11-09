@@ -1,10 +1,6 @@
 angular.module('app', ['ui.router'])
     .config(["$stateProvider", "$compileProvider", function ($stateProvider, $compileProvider) {
         $stateProvider
-            /*.state('oportunidad', {
-                templateUrl: '/views/oportunidad/head.html',
-                controller: 'oportunidad'
-            })*/
             .state('proyectos', {
                 templateUrl: '/views/proyectos/listar.html',
                 controller: 'proyectos'
@@ -73,12 +69,16 @@ angular.module('app', ['ui.router'])
         $scope.proyectos = []
         $scope.informes = []
         
-        var fases = [] //fases del proyecto seleccionado
+        var ubicaciones = [] //ubicaciones del proyecto
+        var fases = [] //fases de la ubicacion y del proyecto
         var tareas = [] //tareas del proyecto seleccionado
         var lineas_tarea = [] //lineas del proyecto seleccionado
 
         $scope.proyecto_actual = null;
         $scope.informe_actual = null
+        //$scope.ubicacion_seleccionada = null
+
+        $scope.ubicaciones = []
 
         /**
          * Seccion proyectos
@@ -86,12 +86,23 @@ angular.module('app', ['ui.router'])
         $scope.ver_informes = async proyecto => {
             var data = await loadProyectoData(proyecto)
             $('#informes_proyecto').modal('show')
+            
+            proyecto.informes.forEach(i => {
+                if (typeof i.fecha === 'string' || i.fecha instanceof String) {
+                    i.fecha = new Date(i.fecha)
+                }
+            })
+
             $scope.proyecto_actual = proyecto
             console.log('creando avance de proyecto', proyecto)
 
+            ubicaciones = data.ubicaciones
             fases = data.fases
             tareas = data.tareas
             lineas_tarea = data.lineas_tarea
+
+            $scope.ubicaciones = ubicaciones
+
             $scope.$apply()
         }
 
@@ -165,15 +176,36 @@ angular.module('app', ['ui.router'])
         /**
          * Seccion lineas informe
          */
-        $scope.nueva_linea = function () {
-            $scope.informe_actual.lineas.push({
+        $scope.nueva_linea = function (ubicacion) {
+            ubicacion = Number(ubicacion)
+            var filter_ubicaciones;
+
+            console.log(ubicacion)
+            
+            if (ubicacion > 0) {
+                filter_ubicaciones = ubicaciones.filter(u => ubicacion === u.tb_proyecto_ubicaciones_id)
+            } else {
+                filter_ubicaciones = ubicaciones;
+            }
+
+
+            var new_data = {
                 proyecto: 'nuevo',
+                ubicacion: undefined,
                 fase: undefined,
                 tarea: undefined,
                 producto: undefined,
                 qty: undefined, 
-                data: { fases, tareas, lineas_tarea }
-            })
+                data: { 
+                    ubicaciones: filter_ubicaciones, 
+                    fases, 
+                    tareas, 
+                    lineas_tarea 
+                }
+            }
+
+
+            $scope.informe_actual.lineas.push(new_data)
         }
 
         $scope.eliminar_linea = removeIndex
@@ -182,14 +214,30 @@ angular.module('app', ['ui.router'])
             $('#lineas_informe_proyecto').modal('hide')
         }
 
+        $scope.cambio_ubicacion = function (tb_proyecto_ubicaciones_id, linea) {
+            linea.data.fases = fases.filter(f => f.tb_proyecto_ubicaciones_id == tb_proyecto_ubicaciones_id)
+
+            console.log(tb_proyecto_ubicaciones_id, fases)
+
+            if (linea.data.fases.length > 0) {
+                linea.fase = linea.data.fases[0].c_projectphase_id
+            }
+        }
+
         $scope.cambio_fase = function (c_projectphase_id, linea) {
             linea.data.tareas = tareas.filter(t => t.c_projectphase_id == c_projectphase_id)
-            console.log('se actualizo las tareas de fase ', c_projectphase_id, linea.data.tareas)
+
+            if (linea.data.tareas.length > 0) {
+                linea.tarea = linea.data.tareas[0].c_projecttask_id
+            }
         }
 
         $scope.cambio_tarea = function (c_projecttask_id, linea) {
             linea.data.lineas_tarea = lineas_tarea.filter(l => l.c_projecttask_id == c_projecttask_id)
-            console.log('se actualizo las lineas de la tarea ', c_projecttask_id, linea.data.lineas_tarea)
+
+            if (linea.data.lineas_tarea.length > 0) {
+                linea.producto = linea.data.lineas_tarea[0].m_product_id
+            }
         }
         
         ///////////////////////////////////////////////////
@@ -393,18 +441,29 @@ async function loadProyectoData (proyecto) {
     if (data.length === 0)
         return null;
 
+    var ubicaciones_id = new Set( data.map(row => row.tb_proyecto_ubicaciones_id).filter(id => Number(id) >= 1000000) )
     var fases_id = new Set( data.map(row => row.c_projectphase_id).filter(id => Number(id) >= 1000000) )
     var tareas_id = new Set( data.map(row => row.c_projecttask_id).filter(id => Number(id) >= 1000000) )
     var productos_id = new Set( data.map(row => row.m_product_id).filter(id => Number(id) >= 1000000) )
 
+    var ubicaciones = [...ubicaciones_id].map(id => data.find(row => row.tb_proyecto_ubicaciones_id === id))
     var fases = [...fases_id].map(id => data.find(row => row.c_projectphase_id === id))
     var tareas = [...tareas_id].map(id => data.find(row => row.c_projecttask_id === id))
     var lineas_tarea = [...productos_id].map(id => data.find(row => row.m_product_id === id))
+
+    ubicaciones = ubicaciones.map(row => {
+        return {
+            tb_proyecto_ubicaciones_id: Number(row.tb_proyecto_ubicaciones_id),
+            ubicacion: row.ubicacion,
+            c_project_id: Number(row.c_project_id)
+        }
+    })
 
     //Fases del proyecto
     fases = fases.map(row => {
         return {
             c_project_id: Number(row.c_project_id),
+            tb_proyecto_ubicaciones_id: Number(row.tb_proyecto_ubicaciones_id),
             fase: row.fase,
             c_projectphase_id: Number(row.c_projectphase_id)
         }
@@ -433,7 +492,7 @@ async function loadProyectoData (proyecto) {
         }
     })
 
-    return {fases, tareas, lineas_tarea}
+    return {ubicaciones, fases, tareas, lineas_tarea}
 }
 
 
@@ -447,53 +506,6 @@ async function syncProyecto(proyecto) {
         throw new Error(`Status: ${data.status}, ${data.statusText}`);
 
     await storageProyecto(proyecto)
-
-    data = [...data.rows]
-
-    if (data.length === 0)
-        return null;
-
-    var fases_id = new Set( data.map(row => row.c_projectphase_id).filter(id => Number(id) >= 1000000) )
-    var tareas_id = new Set( data.map(row => row.c_projecttask_id).filter(id => Number(id) >= 1000000) )
-    var productos_id = new Set( data.map(row => row.m_product_id).filter(id => Number(id) >= 1000000) )
-
-    var fases = [...fases_id].map(id => data.find(row => row.c_projectphase_id === id))
-    var tareas = [...tareas_id].map(id => data.find(row => row.c_projecttask_id === id))
-    var lineas_tarea = [...productos_id].map(id => data.find(row => row.m_product_id === id))
-
-    //Fases del proyecto
-    fases = fases.map(row => {
-        return {
-            c_project_id: Number(row.c_project_id),
-            fase: row.fase,
-            c_projectphase_id: Number(row.c_projectphase_id)
-        }
-    }) 
-
-    //Tareas
-    tareas = tareas.map(row => {
-        return {
-            c_projectphase_id: Number(row.c_projectphase_id),
-            tarea: row.tarea,
-            c_projecttask_id: Number(row.c_projecttask_id)
-        }
-    })
-
-    //Lineas de tarea
-    lineas_tarea = lineas_tarea.map(row => {
-        return {
-            c_projecttask_id: Number(row.c_projecttask_id),
-            codigo: row.codigo,
-            m_product_id: Number(row.m_product_id),
-            producto: row.producto,
-            unidad: row.unidad,
-            plannedqty: Number(row.plannedqty),
-            plannedprice: Number(row.plannedprice),
-            plannedamt: Number(row.plannedamt)
-        }
-    })
-
-    return {fases, tareas, lineas_tarea}
 }
 
 async function cargarTabla (id, url, arrColumnas) {
