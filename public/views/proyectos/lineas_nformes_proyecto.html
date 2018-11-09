@@ -1,0 +1,60 @@
+<div class="modal fade" id="crear_avance_modal" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+
+
+        <div class="modal-body">
+            <style>
+                .form-group label {
+                    font-weight: bold;
+                }
+            </style>
+            <table class="table">Informe por Proyecto
+                <thead>
+                <tr>
+                    <th scope="col">Descripción</th>
+                    <th scope="col">Lista de precios</th>
+                    <th scope="col">Fecha</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="i in informes">
+                    <th> {{i.descripcion}}</th>
+                    <td> {{i.lista_precios}} </td>
+                    <td>{{i.fecha}}</td>
+                    <!--<td><input type="number" required form="crear_siguiente_gestion" ng-model="linea.plannedamt"> </td>-->
+                </tr>
+                </tbody>
+            </table>       
+
+            <table class="table">Lineas de Informe
+                <thead>
+                  <tr>
+                    <th scope="col">Proyecto</th>
+                    <th scope="col">Fase</th>
+                    <th scope="col">Tarea</th>
+                    <th scope="col">Producto</th>
+                    <th scope="col">Cantidad Avance</th>
+                    <th scope="col">Eliminar</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="linea in lineas_informe">
+                    <th> {{linea.proyecto}}</th>
+                    <td> {{linea.fase}} </td>
+                    <td>{{linea.tarea}}</td>
+                    <td>{{linea.producto}}</td>
+                    <td>{{linea.qty}}</td>
+                    <td>eliminar</td>
+                    <!--<td><input type="number" required form="crear_siguiente_gestion" ng-model="linea.plannedamt"> </td>-->
+                  </tr>
+                </tbody>
+              </table>       
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-info" form="crear_siguiente_gestion">Nuevo</button>
+        </div>
+            
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->

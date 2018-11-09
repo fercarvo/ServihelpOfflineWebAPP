@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width=1,initial-scale=1,user-scalable=1" />
+
+	<meta name="theme-color" content="#007bff">
+	<!-- Windows Phone -->
+	<meta name="msapplication-navbutton-color" content="#007bff">
+	<!-- iOS Safari -->
+	<meta name="apple-mobile-web-app-status-bar-style" content="#007bff">
+	<link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+
+
+	<title>Login ITSC APPs</title>	
+	
+	<link rel="stylesheet" href="/vendor/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="/login/styles.css" />
+
+</head>
+<body>
+
+	<section class="container">
+			<section class="login-form">
+				<form data-itsc="<%= roles %>" id="form_itsc" method="post" action="/rol/" role="login">
+                    <img src="/logo_itsc.png" style="max-width:100%; max-height:100%;" />
+                    <input hidden type="text" name="usuario" value="<%= usr %>" required class="form-control input-lg" />
+                    <input hidden type="text" name="clave" value="<%= pass %>" required class="form-control input-lg" />
+					Grupo Empresarial <select id="ad_client_id" name="ad_client_id" required class="form-control input-lg">
+					</select>
+					Rol <select id="ad_role_id" name="ad_role_id" required class="form-control input-lg">
+					</select>
+					Organizaciòn <select id="ad_org_id" name="ad_org_id" required class="form-control input-lg">
+					</select>
+					Almacèn <select id="m_warehouse_id" name="m_warehouse_id" class="form-control input-lg">
+					</select>  
+					<button type="submit" class="btn btn-lg btn-primary btn-block">Ingresar</button>
+				</form>
+				<div class="form-links">
+					<a href="http://www.itsc.ec">www.itsc.ec</a>
+				</div>
+			</section>
+	</section>
+	
+	<script src="/vendor/jquery-3.3.1.slim.min.js"></script>
+	<script src="/vendor/popper.min.js"></script>
+	<script src="/vendor/bootstrap.min.js"></script>
+	<script src="/vendor/pouchdb-7.0.0.js"></script>
+	<script>
+        var data = document.getElementById("form_itsc").getAttribute('data-itsc');
+        data = JSON.parse(decodeURIComponent(data));
+
+        var ad_client_id = document.getElementById('ad_client_id')
+		var ad_role_id = document.getElementById('ad_role_id')
+		var ad_org_id = document.getElementById('ad_org_id')
+		var m_warehouse_id = document.getElementById('m_warehouse_id')
+        
+        updateSelect(ad_client_id, cargarClientes());
+
+        //Actualiza la lista de ROLLES al cambiar esto
+        ad_client_id.addEventListener('change', evt => {
+            var temp = data.filter(rec => rec.ad_client_id === ad_client_id.value)
+
+			temp = temp.map(rec => `${rec.ad_role_id}////${rec.rol}`)
+			temp = [...new Set(temp)]
+			temp = temp.map(r => r.split('////'))
+			temp = temp.map(r => {
+				return { value: r[0], text: r[1] }
+			})
+
+			updateSelect(ad_role_id, temp)
+			updateSelect(ad_org_id, [], true)
+			updateSelect(m_warehouse_id, [], true)
+        }, false)
+
+        //Actualiza la lista de organizaciones al cambiar el ROL
+        ad_role_id.addEventListener('change', evt => { 
+            var temp = data.filter(rec => rec.ad_client_id === ad_client_id.value && rec.ad_role_id === ad_role_id.value)
+
+			temp = temp.map(rec => `${rec.ad_org_id || ''}////${rec.organizacion || ''}`)
+			temp = [...new Set(temp)]
+			temp = temp.map(r => r.split('////'))
+			temp = temp.map(r => {
+				return { value: r[0], text: r[1] }
+			})
+
+			updateSelect(ad_org_id, temp)
+			updateSelect(m_warehouse_id, [], true)
+        }, false)
+
+
+        ad_org_id.addEventListener('change', evt => { 
+            var temp = data.filter(rec => rec.ad_client_id === ad_client_id.value && rec.ad_role_id === ad_role_id.value && rec.ad_org_id === ad_org_id.value)
+
+			temp = temp.map(rec => `${rec.m_warehouse_id || ''}////${rec.warehouse || ''}`)
+			temp = [...new Set(temp)]
+			temp = temp.map(r => r.split('////'))
+			temp = temp.map(r => {
+				return { value: r[0], text: r[1] }
+			})
+
+			updateSelect(m_warehouse_id, temp)
+        }, false)
+
+
+
+        function updateSelect (select, data, flag) {
+			data = data.filter(rec => rec.value !== '')
+			while (select.options.length > 0)                
+				select.remove(0);
+			
+			if (!flag) {
+				var option = document.createElement('option')
+				option.value = ""
+				option.text = "Ingrese una opciòn";
+				option.selected = true;
+				option.disabled = true;	
+				select.add(option) 
+			}
+
+			for (var rec of data) {
+				var option = document.createElement('option')
+				option.value = rec.value;
+				option.text = rec.text;
+				select.add(option) 
+			}			       
+		}
+
+		function cargarClientes () {
+			var temp = data.map(rec => `${rec.ad_client_id}////${rec.grupo}`)
+			temp = [...new Set(temp)]
+			temp = temp.map(r => r.split('////'))
+			return temp.map(r => {
+				return { value: r[0], text: r[1] }
+			})
+		}
+
+		//var login = document.getElementById('form_itsc')
+
+		document.getElementById('form_itsc').addEventListener('submit', function (event) {
+			event.preventDefault();
+
+			fetch('/rol/', {
+				method: 'POST',
+				body: $('#form_itsc').serialize(),
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				}
+
+			}).then(async res => {
+				if (res.ok) {
+					var db = new PouchDB('test-db-123', {adapter: 'idb'});	
+					var token = await res.text()				
+
+					try {
+						var doc = await db.get('itsc-login-token')
+						var response = await db.put({
+							_id: 'itsc-login-token',
+							_rev: doc._rev,
+							token
+						})
+						window.location.replace(`/`)
+
+					} catch (err) {
+						if (err.status === 404) {
+							await db.put({
+								_id: 'itsc-login-token',
+								token
+							})
+							window.location.replace(`/`)
+						} else {
+							console.log('error db', err);
+							alert('No se ha podido guardar la session')
+						}
+					}
+				}
+
+			}).catch(err => {
+				console.log('Error de login', err)
+				alert('Error de conexión login')
+			})
+		})
+
+
+    </script>
+</body>
+</html>

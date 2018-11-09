@@ -1,0 +1,72 @@
+<div class="modal fade" id="siguiente_gestion_modal" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+            <h5>Crear Siguiente Gestión</h5>               
+        </div>
+
+        <div class="modal-body">
+            <style>
+                .form-group label {
+                    font-weight: bold;
+                }
+            </style>
+            <form id="crear_siguiente_gestion" ng-submit="guardar_datos(fase, tarea, descripcion, lineas_tarea)">
+
+                <div ng-show="error.show" class="form-group">
+                  <p style="color: red;">{{error.msg}}</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label ">Fase</label>
+                    <div class="">
+                        <select required class="form-control" ng-model="fase" ng-change="cambio_fase(fase)">
+                            <option selected disabled value=""></option>
+                            <option ng-repeat="f in fases" value="{{f.c_projectphase_id}}">{{f.fase}}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label ">Tarea</label>
+                    <div class="">
+                        <select required class="form-control" ng-model="tarea" ng-change=cambio_tarea(tarea)>
+                            <option selected disabled value=""></option>
+                            <option ng-repeat="t in tareas" value="{{t.c_projecttask_id}}">{{t.tarea}}</option>
+                        </select>
+                    </div>
+                </div>
+  
+                <div class="form-group">
+                    <label class="control-label ">Descripción</label>
+                    <div class="">
+                        <input required class="form-control" ng-model="descripcion" type="text">
+                    </div>
+                </div>
+        
+            </form> 
+            <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Código</th>
+                    <th scope="col">Producto</th>
+                    <th scope="col">Monto Planificado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="linea in lineas_tarea">
+                    <th scope="row">{{linea.codigo}}</th>
+                    <td> {{linea.producto}} </td>
+                    <td><input type="number" required form="crear_siguiente_gestion" ng-model="linea.plannedamt"> </td>
+                  </tr>
+                </tbody>
+              </table>       
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-info" form="crear_siguiente_gestion">Aceptar</button>
+            <button type="button" ng-click="cancelar()" class="btn btn-default" form="crear_siguiente_gestion">Cancelar</button>
+        </div>
+            
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->

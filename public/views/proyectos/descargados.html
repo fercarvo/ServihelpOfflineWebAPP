@@ -1,0 +1,148 @@
+<div class="card">
+    <div class="card-header">Proyectos descargados</div>
+    <div class="card-body table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Código</th>
+                    <th scope="col">Proyecto</th>
+                    <th scope="col">Descripción</th>
+                    <th scope="col">Avance</th>
+                    <th scope="col">Guardar localmente</th>
+                    <th scope="col">Sincronizar avances</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="p in proyectos">
+                    <th scope="row">{{p.codigo}}</th>
+                    <td> {{p.proyecto}} </td>
+                    <td> {{p.descripcion}} </td>
+                    <td>
+                        <button ng-click="ver_informes(p)" title="Ver/crear avance" class="btn btn-default" aria-label="Left Align">
+                            <span class="fa fa-search" aria-hidden="true"></span>
+                        </button>
+                    </td>
+                    <td>
+                        <button ng-click="guardar_localmente(p)" title="Guardar localmente" class="btn btn-default" aria-label="Left Align">
+                            <span class="fa fa-floppy-o" aria-hidden="true"></span>
+                        </button>
+                    </td>
+                    <td>
+                        <button ng-click="sincronizar(p)" title="Sincronizar avances" class="btn btn-default" aria-label="Left Align">
+                            <span class="fa fa-cloud-upload" aria-hidden="true"></span>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div> 
+
+<div class="modal fade" id="informes_proyecto" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="card">
+                <div class="card-header">Informe por Proyecto</div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Descripción</th>
+                                <th scope="col">Fecha</th>
+                                <th scope="col">Lineas</th>
+                                <th scope="col">Eliminar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="i in proyecto_actual.informes">
+                                <th>0</th>
+                                <th> <input class="form-control" form="form_informes" type="text" required="required" ng-model="i.descripcion"></th>
+                                <td> <input class="form-control" form="form_informes" type="date" required="required" ng-model="i.fecha"></td>
+                                <td>
+                                    <button form="form_informes" ng-click="ver_lineas_informe(i)" type="submit" class="btn btn-default" aria-label="Left Align">
+                                        <span class="fa fa-search" aria-hidden="true"></span>
+                                    </button> 
+                                </td>
+                                <td>
+                                    <button ng-click="eliminar_informe($index, proyecto_actual.informes)" type="button" class="btn btn-default" aria-label="Left Align">
+                                        <span class="fa fa-times" aria-hidden="true"></span> 
+                                    </button> 
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table> 
+        
+                </div>
+                <div class="card-footer">
+                    <form id="form_informes">
+                        <button type="submit" form="form_informes" class="btn btn-info" ng-click="nuevo_informe()">
+                            <span class="fa fa-plus" aria-hidden="true"></span>
+                        </button>
+                        <button type="submit" form="form_informes" class="btn btn-info" data-dismiss="modal">Cerrar</button>
+                    </form>
+                </div>
+
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+
+<div class="modal fade" id="lineas_informe_proyecto" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="card">
+                <div class="card-header">Lineas Informe por Proyecto</div>
+                <div class="card-body">
+                    <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Fase</th>
+                                    <th scope="col">Tarea</th>
+                                    <th scope="col">Producto</th>
+                                    <th scope="col">Cantidad Avance</th>
+                                    <th scope="col">Eliminar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="linea in informe_actual.lineas">
+                                    <td>
+                                        <select form="form_lineas" class="form-control" required ng-model="linea.fase" ng-change="cambio_fase(linea.fase, linea)">
+                                            <option selected disabled value=""></option>
+                                            <option ng-repeat="f in linea.data.fases" value="{{f.c_projectphase_id}}">{{f.fase}}</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select form="form_lineas" class="form-control" required ng-model="linea.tarea" ng-change="cambio_tarea(linea.tarea, linea)">
+                                            <option selected disabled value=""></option>
+                                            <option ng-repeat="t in linea.data.tareas" value="{{t.c_projecttask_id}}">{{t.tarea}}</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select form="form_lineas" class="form-control" required ng-model="linea.producto">
+                                            <option selected disabled value=""></option>
+                                            <option ng-repeat="l in linea.data.lineas_tarea" value="{{l.m_product_id}}">{{l.producto}}</option>
+                                        </select>
+                                    </td>
+                                    <td> <input class="form-control" form="form_lineas" type="number" required="required" ng-model="linea.qty"></th>
+                                    <td>
+                                        <button ng-click="eliminar_linea($index, informe_actual.lineas)" type="button" class="btn btn-default" aria-label="Left Align">
+                                            <span class="fa fa-times" aria-hidden="true"></span> 
+                                        </button> 
+                                    </td>
+                                </tr>
+                            </tbody>
+                    </table>       
+                </div>
+                <form class="card-footer">
+                    <button type="submit" class="btn btn-info" ng-click="nueva_linea()">
+                        <span class="fa fa-plus" aria-hidden="true"></span>
+                    </button>
+                    <button type="submit" class="btn btn-info" ng-click="cerrar_lineas_informe()">Cerrar</button>
+                </form>
+            </div>            
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

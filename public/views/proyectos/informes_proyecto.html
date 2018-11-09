@@ -1,0 +1,40 @@
+<div class="modal fade" id="crear_avance_modal" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+
+        <div class="modal-header">
+            Informe por Proyecto
+        </div>
+
+
+        <div class="modal-body">
+            <style>
+                .form-group label {
+                    font-weight: bold;
+                }
+            </style>
+            <table class="table">Informe por Proyecto
+                <thead>
+                <tr>
+                    <th scope="col">Descripción</th>
+                    <th scope="col">Lista de precios</th>
+                    <th scope="col">Fecha</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="i in informes">
+                    <th> {{i.descripcion}}</th>
+                    <td> {{i.lista_precios}} </td>
+                    <td>{{i.fecha}}</td>
+                    <!--<td><input type="number" required form="crear_siguiente_gestion" ng-model="linea.plannedamt"> </td>-->
+                </tr>
+                </tbody>
+            </table>       
+        </div>
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-info" form="crear_siguiente_gestion">Nuevo</button>
+        </div>
+            
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->

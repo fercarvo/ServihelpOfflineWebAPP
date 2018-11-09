@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <!-- Chrome, Firefox OS and Opera -->
+  <meta name="theme-color" content="#071625">
+  <!-- Windows Phone -->
+  <meta name="msapplication-navbutton-color" content="#071625">
+  <!-- iOS Safari -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="#071625">
+  <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <title>ITSC S.A Web APPs  </title>
+  <script>
+      if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then( reg => console.log('Registration succeeded. Scope is ' + reg.scope) )
+            .catch( error => console.log('Registration failed with ' + error) )
+
+      } else {
+          alert('Su navegador web no soporta tecnologia Service Workers, por lo cual no podrá ser usada en modo offline')
+      }
+  </script>
+  <!-- Bootstrap core CSS-->
+  <link rel="stylesheet" href="/vendor/bootstrap.min.css">
+  <link href="/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/vendor/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="/vendor/responsive.dataTables.min.css">
+
+  <!--<link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">-->
+
+
+  <!-- Custom styles for this template-->
+  <link href="/css/sb-admin.css" rel="stylesheet">
+  <style>
+    .boton-itsc {
+      background: #d6d6d6 !important;
+    }
+
+    .bg-dark {
+        background-color: #071625!important;
+    }
+
+    body:-moz-full-screen {
+        background-color: #fff !important;
+    }
+    body:-webkit-full-screen {
+        background-color: #fff !important;
+    }
+    body:fullscreen {
+        background-color: #fff !important;
+    }
+    body:-ms-fullscreen {
+        background-color: #fff !important;
+    }
+  </style>
+</head>
+
+<body class="fixed-nav sticky-footer bg-dark" id="page-top" ng-app="app">
+  <!-- Navigation-->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" id="mainNav">
+    <a class="navbar-brand" target="_blank" rel="noopener noreferrer" href="http://www.itsc.ec">ITSC S.A.</a>
+    <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarResponsive">
+      <ul class="navbar-nav navbar-sidenav" id="exampleAccordion">
+
+        <li class="nav-item"  data-placement="right" ui-sref-active="active" ui-sref="proyectos" data-toggle="tooltip" title="Proyectos">
+          <a class="nav-link">
+            <i class="fa fa-fw fa-lightbulb-o"></i>
+            <span class="nav-link-text">Proyectos</span> 
+          </a>
+        </li>
+
+        <li class="nav-item"  data-placement="right" ui-sref-active="active" ui-sref="proyectos_descargados" data-toggle="tooltip" title="Proyectos descargados">
+            <a class="nav-link">
+                <i class="fa fa-fw fa-lightbulb-o"></i>
+                <span class="nav-link-text">Proyectos descargados</span> 
+            </a>
+        </li>
+
+        <li class="nav-item" id="fullscreen" data-placement="right" data-toggle="tooltip" title="Full Screnn">
+          <a class="nav-link">
+            <i class="fa fa-fw fa-expand"></i>
+            <span class="nav-link-text">Full Screen</span>
+          </a>
+        </li>
+
+      </ul>
+      <ul class="navbar-nav sidenav-toggler">
+        <li class="nav-item">
+          <a class="nav-link text-center" id="sidenavToggler">
+            <i class="fa fa-fw fa-angle-left"></i>
+          </a>
+        </li>
+      </ul>
+
+
+      <ul class="navbar-nav ml-auto">
+
+        <li class="nav-item">
+          <a class="nav-link" data-toggle="modal" onclick="logout()">
+            <i class="fa fa-fw fa-sign-out"></i>Salir</a>
+        </li>
+
+      </ul>
+
+
+
+    </div>
+  </nav>
+  <div class="content-wrapper">
+    <div class="container-fluid">
+        <ui-view></ui-view>
+    </div>
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+      <i class="fa fa-angle-up"></i>
+    </a>
+  </div>
+
+
+<script src="/js/EventBus.js"></script>
+<script src="/vendor/moment.js"></script>
+<script src="/vendor/angular.min.js"></script>
+<script src="/vendor/angular-ui-router.min.js"></script>
+<script src="/vendor/jquery-3.3.1.slim.min.js" ></script>
+<script src="/vendor/popper.min.js" ></script>
+<script src="/vendor/bootstrap.min.js" ></script>
+<script src="/vendor/bootstrap-notify.js"></script>
+
+<script src="/vendor/jquery.dataTables.min.js"></script>
+<script src="/vendor/dataTables.responsive.min.js"></script>
+<script src="js/sb-admin.js"></script>
+<script src="/vendor/pouchdb-7.0.0.js"></script>
+<script>
+    const db = new PouchDB('test-db-123', {adapter: 'idb'});
+
+    async function logout() {
+        if (confirm("Esta seguro que desea salir?")) { 
+            try {
+                var doc = await db.destroy()
+                console.log('Se removio el token')
+            } catch (error) {
+                console.log('No existe session', error)
+            } finally {
+                window.location.replace('/login/')
+            }          
+        }
+    }
+
+    //Soporte de full screen
+    document.getElementById('fullscreen').addEventListener('click', function (event){
+
+        if (document.fullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled) {
+
+            if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+                //Actual: full screen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+
+                document.querySelector("#fullscreen i").className = 'fa fa-fw fa-expand'
+
+            } else {
+                //No esta en modo full screen
+                if (document.body.requestFullscreen) {
+                    document.body.requestFullscreen();
+                } else if (document.body.webkitRequestFullscreen) {
+                    document.body.webkitRequestFullscreen();
+                } else if (document.body.mozRequestFullScreen) {
+                    document.body.mozRequestFullScreen();
+                } else if (document.body.msRequestFullscreen) {
+                    document.body.msRequestFullscreen();
+                }
+
+                document.querySelector("#fullscreen i").className = 'fa fa-fw fa-compress'
+            }        
+
+        } else {
+            alert("Su navegador no soporta Full Screen")
+        }
+    }, false)
+
+
+</script>
+<script src="/js/app.js"></script>
+
+<script>
+
+
+</script>
+</body>
+
+</html>
