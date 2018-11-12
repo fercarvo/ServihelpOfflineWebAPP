@@ -36,7 +36,7 @@ angular.module('app', ['ui.router'])
                 $state.go(evt.target);
             }
 
-            loadTemplates($state, "proyectos", $http, $templateCache)
+            loadTemplates($state, "proyectos_descargados", $http, $templateCache)
         
         } catch (error) {
             console.log('err token itsc', error);
@@ -79,13 +79,21 @@ angular.module('app', ['ui.router'])
         //$scope.ubicacion_seleccionada = null
 
         $scope.ubicaciones = []
+        $scope.fases = []
+        $scope.tareas = []
+        $scope.lineas_tarea = []
+
 
         /**
          * Seccion proyectos
          */
+        $scope.mostrar_proyectos = true
+        
         $scope.ver_informes = async proyecto => {
             var data = await loadProyectoData(proyecto)
-            $('#informes_proyecto').modal('show')
+            $scope.mostrar_proyectos = false;
+            $scope.mostrar_informes = true;
+            //$('#informes_proyecto').modal('show')
             
             proyecto.informes.forEach(i => {
                 if (typeof i.fecha === 'string' || i.fecha instanceof String) {
@@ -100,8 +108,11 @@ angular.module('app', ['ui.router'])
             fases = data.fases
             tareas = data.tareas
             lineas_tarea = data.lineas_tarea
-
+            
             $scope.ubicaciones = ubicaciones
+            $scope.fases = fases
+            $scope.tareas = tareas
+            $scope.lineas_tarea = lineas_tarea
 
             $scope.$apply()
         }
@@ -121,6 +132,7 @@ angular.module('app', ['ui.router'])
                         fecha: i.fecha,
                         lineas: i.lineas.map(l => {
                             return {
+                                ubicacion: l.ubicacion,
                                 fase: l.fase,
                                 producto: l.producto,
                                 tarea: l.tarea,
@@ -131,17 +143,19 @@ angular.module('app', ['ui.router'])
                 })
 
                 console.log('proyecto local', p_to_save)
-                await storageProyecto(proyecto)
-                alert('Proyecto sincronizado exitosamente')
+                await storageProyecto(p_to_save)
+                $.notify({ title: '<strong>Proyecto sincronizado exitosamente</strong>', message: ''},{ type: 'success' })
+
             } catch (error) {
                 console.log('Error', error)
-                alert('Error sincronizar poryecto '+error)
+                $.notify({title: '<strong>Error sincronizar poryecto</strong>', message: error ? error:''},{ type: 'danger' })
+                
             }            
         }
 
         $scope.sincronizar = async proyecto => {
             console.log('sincronizado poryecto', proyecto)
-            alert('sincronizando con el servidor')
+            $.notify({ title: '<strong>sincronizando con el servidor</strong>', message: ''},{ type: 'success' })
         }
 
 
@@ -167,8 +181,15 @@ angular.module('app', ['ui.router'])
         }
 
         $scope.ver_lineas_informe = function (informe) {
-            console.log('informe seleccionado', informe)
             $scope.informe_actual = informe
+
+            console.log($scope.ubicacion_seleccionada)
+
+            if ($scope.ubicacion_seleccionada === undefined) {
+                $scope.ubicacion_seleccionada = $scope.ubicaciones[0]
+                $scope.cambio_ubicacion($scope.ubicacion_seleccionada)
+            }
+
             $('#lineas_informe_proyecto').modal('show')
         }
 
@@ -176,34 +197,37 @@ angular.module('app', ['ui.router'])
         /**
          * Seccion lineas informe
          */
-        $scope.nueva_linea = function (ubicacion) {
-            ubicacion = Number(ubicacion)
-            var filter_ubicaciones;
-
-            console.log(ubicacion)
-            
-            if (ubicacion > 0) {
-                filter_ubicaciones = ubicaciones.filter(u => ubicacion === u.tb_proyecto_ubicaciones_id)
-            } else {
-                filter_ubicaciones = ubicaciones;
+        $scope.nueva_linea = function (ubi, fas, tar, prod) {
+            let new_ubicacion = {
+                ubicacion: ubi.ubicacion,
+                tb_proyecto_ubicaciones_id: ubi.tb_proyecto_ubicaciones_id
             }
 
+            let new_fase = {
+                fase: fas.fase,
+                c_projectphase_id: fas.c_projectphase_id
+            }
 
+            let new_tarea = {
+                tarea: tar.tarea,
+                c_projecttask_id: tar.c_projecttask_id
+            }
+
+            let new_producto = {
+                producto: prod.producto,
+                m_product_id: prod.m_product_id,
+                plannedamt: prod.plannedamt,
+                plannedprice: prod.plannedprice,
+                plannedqty: prod.plannedqty,
+                codigo: prod.codigo
+            }
             var new_data = {
-                proyecto: 'nuevo',
-                ubicacion: undefined,
-                fase: undefined,
-                tarea: undefined,
-                producto: undefined,
-                qty: undefined, 
-                data: { 
-                    ubicaciones: filter_ubicaciones, 
-                    fases, 
-                    tareas, 
-                    lineas_tarea 
-                }
+                ubicacion: new_ubicacion,
+                fase: new_fase,
+                tarea: new_tarea,
+                producto: new_producto,
+                qty: undefined
             }
-
 
             $scope.informe_actual.lineas.push(new_data)
         }
@@ -214,29 +238,29 @@ angular.module('app', ['ui.router'])
             $('#lineas_informe_proyecto').modal('hide')
         }
 
-        $scope.cambio_ubicacion = function (tb_proyecto_ubicaciones_id, linea) {
-            linea.data.fases = fases.filter(f => f.tb_proyecto_ubicaciones_id == tb_proyecto_ubicaciones_id)
+        $scope.cambio_ubicacion = function (ubicacion_seleccionada) {
+            $scope.fases = fases.filter(f => f.tb_proyecto_ubicaciones_id == ubicacion_seleccionada.tb_proyecto_ubicaciones_id)
+            if ($scope.fases.length > 0) {
+                $scope.fase_seleccionada = $scope.fases[0]
+                $scope.cambio_fase($scope.fase_seleccionada)
+            }
 
-            console.log(tb_proyecto_ubicaciones_id, fases)
+        }
 
-            if (linea.data.fases.length > 0) {
-                linea.fase = linea.data.fases[0].c_projectphase_id
+        $scope.cambio_fase = function (fase_seleccionada) {
+            $scope.tareas = tareas.filter(t => t.c_projectphase_id == fase_seleccionada.c_projectphase_id)
+
+            if ($scope.tareas.length > 0) {
+                $scope.tarea_seleccionada = $scope.tareas[0]
+                $scope.cambio_tarea($scope.tarea_seleccionada)
             }
         }
 
-        $scope.cambio_fase = function (c_projectphase_id, linea) {
-            linea.data.tareas = tareas.filter(t => t.c_projectphase_id == c_projectphase_id)
+        $scope.cambio_tarea = function (tarea_seleccionada) {
+            $scope.lineas_tarea = lineas_tarea.filter(l => l.c_projecttask_id == tarea_seleccionada.c_projecttask_id)
 
-            if (linea.data.tareas.length > 0) {
-                linea.tarea = linea.data.tareas[0].c_projecttask_id
-            }
-        }
-
-        $scope.cambio_tarea = function (c_projecttask_id, linea) {
-            linea.data.lineas_tarea = lineas_tarea.filter(l => l.c_projecttask_id == c_projecttask_id)
-
-            if (linea.data.lineas_tarea.length > 0) {
-                linea.producto = linea.data.lineas_tarea[0].m_product_id
+            if ($scope.lineas_tarea.length > 0) {
+                $scope.producto_seleccionado = $scope.lineas_tarea[0]
             }
         }
         
@@ -488,7 +512,7 @@ async function loadProyectoData (proyecto) {
             unidad: row.unidad,
             plannedqty: Number(row.plannedqty),
             plannedprice: Number(row.plannedprice),
-            plannedamt: Number(row.plannedamt)
+            plannedamt: Number(row.plannedamt) //total planeado
         }
     })
 

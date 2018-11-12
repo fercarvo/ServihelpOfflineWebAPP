@@ -1,7 +1,12 @@
-<div class="card">
-    <div class="card-header">Proyectos descargados</div>
-    <div class="card-body table-responsive">
-        <table class="table">
+<div ng-show="mostrar_proyectos">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a > <strong> Proyectos descargados </strong> </a>
+        </li>
+    </ol>  
+    
+    <div class="table-responsive">
+        <table class="table table-sm">
             <thead>
                 <tr>
                     <th scope="col">Código</th>
@@ -36,57 +41,48 @@
             </tbody>
         </table>
     </div>
-</div> 
+</div>
 
-<div class="modal fade" id="informes_proyecto" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="card">
-                <div class="card-header">Informe por Proyecto</div>
-                <div class="card-body">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">ID</th>
-                                <th scope="col">Descripción</th>
-                                <th scope="col">Fecha</th>
-                                <th scope="col">Lineas</th>
-                                <th scope="col">Eliminar</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr ng-repeat="i in proyecto_actual.informes">
-                                <th>0</th>
-                                <th> <input class="form-control" form="form_informes" type="text" required="required" ng-model="i.descripcion"></th>
-                                <td> <input class="form-control" form="form_informes" type="date" required="required" ng-model="i.fecha"></td>
-                                <td>
-                                    <button form="form_informes" ng-click="ver_lineas_informe(i)" type="submit" class="btn btn-default" aria-label="Left Align">
-                                        <span class="fa fa-search" aria-hidden="true"></span>
-                                    </button> 
-                                </td>
-                                <td>
-                                    <button ng-click="eliminar_informe($index, proyecto_actual.informes)" type="button" class="btn btn-default" aria-label="Left Align">
-                                        <span class="fa fa-times" aria-hidden="true"></span> 
-                                    </button> 
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table> 
-        
-                </div>
-                <div class="card-footer">
-                    <form id="form_informes">
-                        <button type="submit" form="form_informes" class="btn btn-info" ng-click="nuevo_informe()">
-                            <span class="fa fa-plus" aria-hidden="true"></span>
-                        </button>
-                        <button type="submit" form="form_informes" class="btn btn-info" data-dismiss="modal">Cerrar</button>
-                    </form>
-                </div>
-
-            </div>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+<div ng-show="mostrar_informes">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a > <strong ng-click="mostrar_informes=false; mostrar_proyectos=true;">Proyectos descargados</strong>  / informe por proyecto</a>
+        </li>
+    </ol>
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Lineas</th>
+                <th scope="col">Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="i in proyecto_actual.informes">
+                <th>0</th>
+                <th> <input class="form-control" form="form_informes" type="text" required="required" ng-model="i.descripcion"></th>
+                <td> <input class="form-control" form="form_informes" type="date" required="required" ng-model="i.fecha"></td>
+                <td>
+                    <button form="form_informes" ng-click="ver_lineas_informe(i)" type="submit" class="btn btn-default" aria-label="Left Align">
+                        <span class="fa fa-search" aria-hidden="true"></span>
+                    </button> 
+                </td>
+                <td>
+                    <button ng-click="eliminar_informe($index, proyecto_actual.informes)" type="button" class="btn btn-default" aria-label="Left Align">
+                        <span class="fa fa-times" aria-hidden="true"></span> 
+                    </button> 
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <form id="form_informes">
+        <button type="submit" form="form_informes" class="btn btn-info" ng-click="nuevo_informe()">
+            <span class="fa fa-plus" aria-hidden="true"></span>
+        </button>
+    </form> 
+</div>
 
 
 
@@ -96,75 +92,81 @@
             <div class="card">
                 <div class="card-header"> 
                     <table>
-                        <tr>
-                            <td>
-                                <form id="ubicacion_select" ng-submit="nueva_linea(ubicacion_seleccionada)">
-                                    <select class="form-control" 
-                                        ng-model="ubicacion_seleccionada"
-                                        ng-options="u.tb_proyecto_ubicaciones_id as u.ubicacion for u in ubicaciones">
-                                        <option></option>
+                        <thead>
+                            <tr>
+                                <th scope="col">Ubicación</th>
+                                <th scope="col">Fase</th>
+                                <th scope="col">Tarea</th>
+                                <th scope="col">Producto</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <select 
+                                        form="ubicacion_select" class="form-control" required 
+                                        ng-model="ubicacion_seleccionada" 
+                                        ng-change="cambio_ubicacion(ubicacion_seleccionada)"
+                                        ng-options="u as u.ubicacion for u in ubicaciones">
                                     </select>
-                                </form>  
-                            </td>
-                            <td>
-                                <button form="ubicacion_select" type="submit" class="btn btn-info">
-                                    <span class="fa fa-plus" aria-hidden="true"></span>
-                                </button>
-                                <button class="btn btn-info" ng-click="cerrar_lineas_informe()">Cerrar</button>
-                            </td>
-                        </tr>
+                                </td>
+                                <td>
+                                    <select 
+                                        form="ubicacion_select" class="form-control" required 
+                                        ng-model="fase_seleccionada" 
+                                        ng-change="cambio_fase(fase_seleccionada)"
+                                        ng-options="f as f.fase for f in fases">
+                                    </select>
+                                </td>
+                                <td>
+                                    <select 
+                                        form="ubicacion_select" class="form-control" required 
+                                        ng-model="tarea_seleccionada" 
+                                        ng-change="cambio_tarea(tarea_seleccionada)"
+                                        ng-options="t as t.tarea for t in tareas">
+                                    </select>
+                                </td>
+                                <td>
+                                    <select 
+                                        form="ubicacion_select" class="form-control" required 
+                                        ng-model="producto_seleccionado"
+                                        ng-options="l as l.producto for l in lineas_tarea">
+                                    </select>
+                                </td>
+                                <td>
+                                    <form id="ubicacion_select" ng-submit="nueva_linea(ubicacion_seleccionada, fase_seleccionada, tarea_seleccionada, producto_seleccionado)">
+                                        <button type="submit" class="btn btn-info">
+                                            <span class="fa fa-plus" aria-hidden="true"></span>
+                                        </button>
+                                    </form>                                   
+                                </td>
+                            </tr>
+                        </tbody>
+                        
                     </table>              
                     
                 </div>
-                <div class="card-body">
-                    <table class="table">
+                <div class="card-body table-responsive">
+                    <table class="table table-sm">
                             <thead>
                                 <tr>
                                     <th scope="col">Ubicación</th>
                                     <th scope="col">Fase</th>
                                     <th scope="col">Tarea</th>
                                     <th scope="col">Producto</th>
+                                    <th scope="col"> Total Planeado </th>
                                     <th scope="col">Cantidad Avance</th>
                                     <th scope="col">Eliminar</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr ng-repeat="linea in informe_actual.lineas">
-                                    <td>
-                                        <select 
-                                            form="form_lineas" class="form-control" required 
-                                            ng-model="linea.ubicacion" 
-                                            ng-change="cambio_ubicacion(linea.ubicacion, linea)"
-                                            ng-options="u.tb_proyecto_ubicaciones_id as u.ubicacion for u in linea.data.ubicaciones"
-                                            ng-init="linea.ubicacion=linea.data.ubicaciones[0].tb_proyecto_ubicaciones_id; cambio_ubicacion(linea.ubicacion, linea)">
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select 
-                                            form="form_lineas" class="form-control" required 
-                                            ng-model="linea.fase" 
-                                            ng-change="cambio_fase(linea.fase, linea)"
-                                            ng-options="f.c_projectphase_id as f.fase for f in linea.data.fases"
-                                            ng-init="linea.fase = linea.data.fases[0].c_projectphase_id">
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select 
-                                            form="form_lineas" class="form-control" required 
-                                            ng-model="linea.tarea" 
-                                            ng-change="cambio_tarea(linea.tarea, linea)"
-                                            ng-options="t.c_projecttask_id as t.tarea for t in linea.data.tareas"
-                                            ng-init="linea.tarea = linea.data.tareas[0].c_projecttask_id">
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select 
-                                            form="form_lineas" class="form-control" required 
-                                            ng-model="linea.producto"
-                                            ng-options="l.m_product_id as l.producto for l in linea.data.lineas_tarea"
-                                            ng-init="linea.producto = linea.data.lineas_tarea[0].m_product_id">
-                                        </select>
-                                    </td>
+                                    <td> {{linea.ubicacion.ubicacion}} </td>
+                                    <td> {{linea.fase.fase}} </td>
+                                    <td> {{linea.tarea.tarea}} </td>
+                                    <td> {{linea.producto.producto}} </td>
+                                    <td> {{linea.producto.plannedamt}} </td>
                                     <td> <input class="form-control" form="form_lineas" type="number" required="required" ng-model="linea.qty"></th>
                                     <td>
                                         <button ng-click="eliminar_linea($index, informe_actual.lineas)" type="button" class="btn btn-default" aria-label="Left Align">
@@ -174,6 +176,9 @@
                                 </tr>
                             </tbody>
                     </table>       
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-info" ng-click="cerrar_lineas_informe()">Cerrar</button>
                 </div>
             </div>            
         </div><!-- /.modal-content -->
