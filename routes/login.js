@@ -1,9 +1,7 @@
 var express = require('express');
 var router = express.Router();
-var { pool, secret, sign_alg } = require('../util/DB.js');
-var cookies = require('cookie-parser');
+var { pool, secret, sign_alg, session_timeout } = require('../util/DB.js');
 const crypto = require('crypto');
-
 
 router.use(function (req, res, next) {
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate')
@@ -75,7 +73,11 @@ router.post('/login/', async function (req, res, next) {
                     var data_login = await createPayload(req.body.usuario, req.body.clave, ad_client_id, ad_role_id, ad_org_id)
                     var token = createToken(data_login)
 
-                    res.cookie('session_itsc', token,  { maxAge: 1000*60*60*12, httpOnly: true})
+                    res.cookie('session_itsc', token,  { 
+                        maxAge: session_timeout,
+                        httpOnly: true
+                    })
+
                     res.redirect('/')
                 }                
             }
@@ -96,7 +98,10 @@ router.post('/rol', async function (req, res, next) {
         var data = await createPayload(req.body.usuario, req.body.clave, req.body.ad_client_id, req.body.ad_role_id, req.body.ad_org_id, req.body.m_warehouse_id)
         var token = createToken(data)
 
-        res.cookie('session_itsc', token,  { maxAge: 1000*60*60*12, httpOnly: true})
+        res.cookie('session_itsc', token,  { 
+            maxAge: session_timeout, 
+            httpOnly: true
+        })
         res.send(token)  
         
     } catch (e) {

@@ -4,7 +4,8 @@ var login = require('./login').router
 var { getSecret } = require('./login')
 //var { requestWS } = require('./webservice')
 var { pool, url } = require('../util/DB.js');
-//var foo = require('NodeJS_iDempiereWebService')
+var { requestWS } = require('NodeJS_iDempiereWebService')
+var moment = require('moment')
 
 //console.log(foo)
 
@@ -31,27 +32,32 @@ router.get('/proyecto/:id', login.validarSesion, async (req, res, next) => {
 })
 
 
-router.post("/gestion/:id/nueva", login.validarSesion, async (req, res, next) => {
+router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next) => {
     try {
-        var actividad = Number(req.params.id);
-        var tipo_actividad = req.body.tipo_actividad
-        var fecha = req.body.fecha
+        var id_proyecto = Number(req.params.id);
+        var id_infogasto = Number(req.body.s_timeexpense_id)
+        var fecha_infogasto = moment( new Date(req.body.fecha_infogasto) ).format('YYYY-MM-DD hh:mm:ss')
         var descripcion = req.body.descripcion
-        var siguiente_ac = req.body.siguiente_ac
-        var f_siguiente_ac = req.body.f_siguiente_ac
+        
+        console.log(req.body)
+              
+        var lineas_proyecto_id = req.body.lineas.map(l => Number(l.c_projectline_id)).join('_')
+        var cantidades = req.body.lineas.map(l => Number(l.qty)).join('_')
 
         var {user, password} = await getSecret(req.session_itsc.ad_user_id);
 
         var params = [
-            {column: "C_ContactActivity_ID", val: actividad},
-            {column: "ContactActivityType", val: tipo_actividad},
-            {column: "StartDate", val: fecha},
+            {column: "C_Project_ID", val: id_proyecto},
+            {column: "S_TimeExpense_ID", val: id_infogasto},
+            {column: "fecha_infogasto", val: fecha_infogasto},
             {column: "Description", val: descripcion},
-            {column: "next_activity", val: siguiente_ac},
-            {column: "EndDate", val: f_siguiente_ac}
+            {column: "lineas_proyecto_id", val: lineas_proyecto_id},
+            {column: "cantidades", val: cantidades}
         ]
 
-        var data = await requestWS(url, "CrearGestion", req.session_itsc, user, password, params)
+        console.log('params', params)
+
+        var data = await requestWS(url, "crear_avance_proyecto_ws", req.session_itsc, user, password, params)
         res.send(data);
 
     } catch (e) {

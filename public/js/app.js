@@ -90,6 +90,7 @@ angular.module('app', ['ui.router'])
         $scope.mostrar_proyectos = true
         
         $scope.ver_informes = async proyecto => {
+
             var data = await loadProyectoData(proyecto)
             $scope.mostrar_proyectos = false;
             $scope.mostrar_informes = true;
@@ -117,7 +118,7 @@ angular.module('app', ['ui.router'])
             $scope.$apply()
         }
 
-        $scope.guardar_localmente = async proyecto => {
+        $scope.guardar_localmente = async (proyecto, alerta) => {
             try {
                 var p_to_save = {}
 
@@ -128,6 +129,7 @@ angular.module('app', ['ui.router'])
                 delete p_to_save['$$hashKey']
                 p_to_save.informes = proyecto.informes.map(i => {
                     return {
+                        s_timeexpense_id: i.s_timeexpense_id,
                         descripcion: i.descripcion,
                         fecha: i.fecha,
                         lineas: i.lineas.map(l => {
@@ -144,18 +146,40 @@ angular.module('app', ['ui.router'])
 
                 console.log('proyecto local', p_to_save)
                 await storageProyecto(p_to_save)
-                $.notify({ title: '<strong>Proyecto sincronizado exitosamente</strong>', message: ''},{ type: 'success' })
+                if (alerta) {
+                    alert("Proyecto guardado exitosamente")
+                } else {
+                    $.notify({ title: '<strong>Proyecto guardado exitosamente</strong>', message: ''},{ type: 'success' })
+                }
 
             } catch (error) {
                 console.log('Error', error)
-                $.notify({title: '<strong>Error sincronizar poryecto</strong>', message: error ? error:''},{ type: 'danger' })
-                
+                if (alerta) {
+                    alert('Error guardar poryecto '+ error)
+                } else {
+                    $.notify({title: '<strong>Error guardar poryecto</strong>', message: error ? error:''},{ type: 'danger' })
+                }                
             }            
         }
 
         $scope.sincronizar = async proyecto => {
             console.log('sincronizado poryecto', proyecto)
-            $.notify({ title: '<strong>sincronizando con el servidor</strong>', message: ''},{ type: 'success' })
+
+            try {
+                for (var informe of proyecto.informes) {
+                    console.log('guardando informe', informe)
+                    var id_inforgasto = await guardarInfoGasto(proyecto.c_project_id, informe.s_timeexpense_id, informe.fecha, informe.descripcion, informe.lineas)
+                    
+                    informe.s_timeexpense_id = Number(id_inforgasto)
+                    console.log('informe guardado', informe)                   
+                }
+                $.notify({ title: '<strong>Sincronizado con el servidor</strong>', message: ''},{ type: 'success' })
+
+                $scope.guardar_localmente(proyecto)
+
+            } catch (error) {
+                $.notify({ title: '<strong>Error de sincronizacion</strong>', message: `${error}`},{ type: 'danger' })
+            }
         }
 
 
@@ -170,6 +194,7 @@ angular.module('app', ['ui.router'])
         $scope.nuevo_informe = function () {
             if ($scope.proyecto_actual) {
                 $scope.proyecto_actual.informes.push({
+                    s_timeexpense_id: 0,
                     descripcion: undefined,
                     fecha: new Date(),
                     lineas: []
@@ -214,6 +239,7 @@ angular.module('app', ['ui.router'])
             }
 
             let new_producto = {
+                c_projectline_id: prod.c_projectline_id,
                 producto: prod.producto,
                 m_product_id: prod.m_product_id,
                 plannedamt: prod.plannedamt,
@@ -358,43 +384,33 @@ function cargarProyecto (data) {
     EventBus.dispatch('newState', 'proyectos.cargar', leer(data));
 }
 
-async function guardarProyecto(proyecto, fase, tarea, comentario, lineas) {
+async function guardarInfoGasto(proyecto_id, s_timeexpense_id, fecha_infogasto, descripcion, lineas) {
 
-    try {
-        proyecto = Number(proyecto)
-        fase = Number(fase)
-        tarea = Number(tarea)
-        comentario = `${comentario ? comentario : ''}`
+    s_timeexpense_id = Number(s_timeexpense_id)
+    proyecto_id = Number(proyecto_id)
+    descripcion = `${descripcion ? descripcion : ''}`
 
-        lineas = lineas.map(linea => {
-            return {
-                linea_id: Number(linea.c_line_id),
-                plannedamt: Number(linea.plannedamt)
-            }
-        })
-
-        var response = await fetch(`/proyecto/${proyecto}`, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({proyecto, fase, tarea, comentario, lineas})
-        })
-
-        if (response.ok) {
-            alert("Proyecto actualizado exitosamente")
-            console.log(await response.text())
-        } else {
-            alert("El poryecto no se actualizo de manera correcta")
-            console.log(response.status)
-            console.log(await response.text())
+    lineas = lineas.map(linea => {
+        return {
+            c_projectline_id: Number(linea.producto.c_projectline_id),
+            qty: Number(linea.qty)
         }
+    })
 
-    } catch (error) {
-        console.log("posible error de conexión", error)
-    }
-    
+    var response = await fetch(`/proyecto/avance/${proyecto_id}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({descripcion, s_timeexpense_id, fecha_infogasto, lineas})
+    })
+
+    if (response.ok) {
+        return await response.text()
+    } else {
+        console.log(response.status)
+        throw new Error(await response.text())
+    }  
     
 }
 
@@ -506,6 +522,7 @@ async function loadProyectoData (proyecto) {
     lineas_tarea = lineas_tarea.map(row => {
         return {
             c_projecttask_id: Number(row.c_projecttask_id),
+            c_projectline_id: Number(row.c_projectline_id),
             codigo: row.codigo,
             m_product_id: Number(row.m_product_id),
             producto: row.producto,

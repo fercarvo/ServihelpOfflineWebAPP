@@ -7,7 +7,7 @@
  * Este SW servira para incrementar el performance y reducir el trafico de los aplicativos usados en ITSC
  */
 
-const CACHE_NAME = 'Static-ITSC-Servihelp-v1.0'
+const CACHE_NAME = 'Static-ITSC-Servihelp-v1.2'
 
 const static = [
     '/css/sb-admin.css',
@@ -31,9 +31,23 @@ self.addEventListener('install', function (event) {
     }())
 })
 
+self.addEventListener('activate', function(event) {
+
+    event.waitUntil(async function () {
+        var cacheNames = await caches.keys() //Todos los cache
+        var toRemove = cacheNames.filter(c => c !== CACHE_NAME) //Se filtra todos los diferentes a CACHE_NAME
+        console.log('[SW] Removiendo caches', toRemove)
+
+        return await Promise.all(toRemove.map(c => caches.delete(c)))
+    }())    
+})
+
 self.addEventListener('fetch', function(event) {
 
     const destination = event.request.destination;
+
+    if (event.request.method != 'GET')
+        return;
 
     if (RegExp('/app.js').test( event.request.url ))
         return event.respondWith( cacheThenNetworkUpdate(event) )
