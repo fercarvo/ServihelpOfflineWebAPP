@@ -13,8 +13,6 @@
                     <th scope="col">Proyecto</th>
                     <th scope="col">Descripción</th>
                     <th scope="col">Avance</th>
-                    <th scope="col">Guardar localmente</th>
-                    <th scope="col">Sincronizar avances</th>
                 </tr>
             </thead>
             <tbody>
@@ -25,16 +23,6 @@
                     <td>
                         <button ng-click="ver_informes(p)" title="Ver/crear avance" class="btn btn-default" aria-label="Left Align">
                             <span class="fa fa-search" aria-hidden="true"></span>
-                        </button>
-                    </td>
-                    <td>
-                        <button ng-click="guardar_localmente(p)" title="Guardar localmente" class="btn btn-default" aria-label="Left Align">
-                            <span class="fa fa-floppy-o" aria-hidden="true"></span>
-                        </button>
-                    </td>
-                    <td>
-                        <button ng-click="sincronizar(p)" title="Sincronizar avances" class="btn btn-default" aria-label="Left Align">
-                            <span class="fa fa-cloud-upload" aria-hidden="true"></span>
                         </button>
                     </td>
                 </tr>
@@ -52,36 +40,42 @@
     <table class="table table-sm">
         <thead>
             <tr>
-                <th scope="col">ID</th>
+                <th scope="col">Num. Doc</th>
                 <th scope="col">Descripción</th>
                 <th scope="col">Fecha</th>
                 <th scope="col">Lineas</th>
+                <th scope="col">Sincronizar</th>
                 <th scope="col">Eliminar</th>
             </tr>
         </thead>
         <tbody>
             <tr ng-repeat="i in proyecto_actual.informes">
-                <th>{{i.s_timeexpense_id}}</th>
-                <th> <input class="form-control" form="form_informes" type="text" required="required" ng-model="i.descripcion"></th>
-                <td> <input class="form-control" form="form_informes" type="date" required="required" ng-model="i.fecha"></td>
+                <th>{{i.documentno}}</th>
+                <th> <input class="form-control" form="form_informes" type="text" required ng-model="i.descripcion"></th>
+                <td> <input class="form-control" form="form_informes" type="date" required ng-model="i.fecha"></td>
                 <td>
-                    <button form="form_informes" ng-click="ver_lineas_informe(i)" type="submit" class="btn btn-default" aria-label="Left Align">
+                    <button ng-click="ver_lineas_informe(i)" type="button" class="btn btn-default" aria-label="Left Align">
                         <span class="fa fa-search" aria-hidden="true"></span>
                     </button> 
                 </td>
                 <td>
-                    <button ng-click="eliminar_informe($index, proyecto_actual.informes)" type="button" class="btn btn-default" aria-label="Left Align">
+                    <button ng-click="sincronizar(proyecto_actual, i)" type="button" title="Sincronizar avance" class="btn btn-default" aria-label="Left Align">
+                        <span class="fa fa-cloud-upload" aria-hidden="true"></span>
+                    </button>
+                </td>
+                <td>
+                    <button ng-disabled="i.s_timeexpense_id > 0" ng-click="eliminar_informe($index, proyecto_actual.informes)" type="button" class="btn btn-default" aria-label="Left Align">
                         <span class="fa fa-times" aria-hidden="true"></span> 
                     </button> 
                 </td>
             </tr>
         </tbody>
     </table>
-    <form id="form_informes">
-        <button type="submit" class="btn btn-info" ng-click="nuevo_informe()">
+    <form id="form_informes" ng-submit="guardar_localmente(proyecto_actual)">
+        <button type="button" class="btn btn-info" ng-click="nuevo_informe()">
             <span class="fa fa-plus" aria-hidden="true"></span>
         </button>
-        <button type="submit" ng-click="guardar_localmente(proyecto_actual)" title="Guardar localmente" class="btn btn-info">
+        <button type="submit" title="Guardar localmente" class="btn btn-info">
             <span class="fa fa-floppy-o" aria-hidden="true"></span>
         </button>
     </form> 
@@ -112,6 +106,7 @@
                                         ng-model="ubicacion_seleccionada" 
                                         ng-change="cambio_ubicacion(ubicacion_seleccionada)"
                                         ng-options="u as u.ubicacion for u in ubicaciones">
+                                        <option value=""></option>
                                     </select>
                                 </td>
                                 <td>
@@ -120,6 +115,7 @@
                                         ng-model="fase_seleccionada" 
                                         ng-change="cambio_fase(fase_seleccionada)"
                                         ng-options="f as f.fase for f in fases">
+                                        <option value=""></option>
                                     </select>
                                 </td>
                                 <td>
@@ -128,6 +124,7 @@
                                         ng-model="tarea_seleccionada" 
                                         ng-change="cambio_tarea(tarea_seleccionada)"
                                         ng-options="t as t.tarea for t in tareas">
+                                        <option value=""></option>
                                     </select>
                                 </td>
                                 <td>
@@ -135,6 +132,7 @@
                                         form="ubicacion_select" class="form-control" required 
                                         ng-model="producto_seleccionado"
                                         ng-options="l as l.producto for l in lineas_tarea">
+                                        <option value=""></option>
                                     </select>
                                 </td>
                                 <td>
@@ -158,8 +156,8 @@
                                     <th scope="col">Fase</th>
                                     <th scope="col">Tarea</th>
                                     <th scope="col">Producto</th>
-                                    <th scope="col"> Total Planeado </th>
-                                    <th scope="col">Cantidad Avance</th>
+                                    <th scope="col">Cant Presup.</th>
+                                    <th scope="col">Cant Av.</th>
                                     <th scope="col">Eliminar</th>
                                 </tr>
                             </thead>
@@ -169,8 +167,8 @@
                                     <td> {{linea.fase.fase}} </td>
                                     <td> {{linea.tarea.tarea}} </td>
                                     <td> {{linea.producto.producto}} </td>
-                                    <td> {{linea.producto.plannedamt}} </td>
-                                    <td> <input class="form-control" form="form_lineas" type="number" required="required" ng-model="linea.qty"></th>
+                                    <td title="PlannedQty"> {{linea.producto.plannedqty}} </td>
+                                    <td> <input title="Linea informe de gasto -> Cantidad (Qty)" class="form-control" form="form_lineas" type="number" required="required" ng-model="linea.qty" min="0" step="0.01"></th>
                                     <td>
                                         <button ng-click="eliminar_linea($index, informe_actual.lineas)" type="button" class="btn btn-default" aria-label="Left Align">
                                             <span class="fa fa-times" aria-hidden="true"></span> 
@@ -180,9 +178,9 @@
                             </tbody>
                     </table>       
                 </div>
-                <form class="card-footer" id="form_lineas">
-                    <button class="btn btn-info" ng-click="cerrar_lineas_informe()">Cerrar</button>
-                    <button type="submit" ng-click="guardar_localmente(proyecto_actual, true)" title="Guardar localmente" class="btn btn-info">
+                <form class="card-footer" id="form_lineas" ng-submit="guardar_localmente(proyecto_actual, true)">
+                    <button type="button" class="btn btn-info" ng-click="cerrar_lineas_informe()">Cerrar</button>
+                    <button type="submit" title="Guardar localmente" class="btn btn-info">
                         <span class="fa fa-floppy-o" aria-hidden="true"></span>
                     </button>
                 </form>

@@ -46,13 +46,19 @@ self.addEventListener('fetch', function(event) {
 
     const destination = event.request.destination;
 
+    //El login es siempre network, pero se almacena en cache para logearse en modo offline
+    //if (event.request.method == 'POST' && (RegExp( '/login' ).test( event.request.url ) || RegExp( '/rol' ).test( event.request.url ))) {
+    //    event.respondWith( networkThenCache(event) )
+    //    return;
+    //}
+
     if (event.request.method != 'GET')
         return;
 
     if (RegExp('/app.js').test( event.request.url ))
         return event.respondWith( cacheThenNetworkUpdate(event) )
 
-    if (RegExp( '/logout/' ).test( event.request.url ) || RegExp( '/rol/' ).test( event.request.url ))
+    if (RegExp( '/logout/' ).test( event.request.url ))
         return;
 
     switch (destination) {
@@ -117,6 +123,7 @@ async function alwaysCache (event) {
 }
 
 async function networkThenCache(event) {
+    var requestToCache = event.request.clone()
     try {
         var response = await fetch(event.request, { redirect: 'follow' })
 
@@ -128,13 +135,14 @@ async function networkThenCache(event) {
         var responseToCache = response.clone();
 
         caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseToCache)
+            cache.put(requestToCache, responseToCache)
             console.log('[SW] Guardado en cache', event.request.url)
         })
 
         return response
 
     } catch (error) {
-        return await caches.match(event.request)
+        var response_cache = await caches.match(event.request, {cacheName: CACHE_NAME})
+        return response_cache
     }
 }

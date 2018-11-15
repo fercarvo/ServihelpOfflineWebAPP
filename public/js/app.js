@@ -13,14 +13,6 @@ angular.module('app', ['ui.router'])
                 templateUrl: '/views/proyectos/descargados.html',
                 controller: 'proyectos_descargados'
             })
-            .state('proyectos_descargados.avance', {
-                templateUrl: '/views/proyectos/informes_proyecto.html',
-                controller: 'proyectos_descargados.avance'
-            })
-            .state('proyectos_descargados.avance.lineas', {
-                templateUrl: '/views/proyectos/lineas_nformes_proyecto.html',
-                controller: 'proyectos_descargados.avance.lineas'
-            })
             
     }])
     .run(["$state", "$http", "$templateCache", "storage", async function ($state, $http, $templateCache, op) {
@@ -55,10 +47,7 @@ angular.module('app', ['ui.router'])
             {name: 'cliente', alias: 'Cliente'},
             {name: 'proyecto', alias: 'Proyecto'},
             {name: 'descripcion', alias: 'Descripción'},
-            {name: 'fechacontrato', alias: 'Fecha Comtrato'},
-            {name: 'fechaterminacion', alias: 'Fecha Terminacion'},
-            {name: 'asesor', alias: 'Asesor'},
-            {name: 'totalplaneado', alias: 'Total Planeado'},
+            {name: 'fechacontrato', alias: 'Fecha Contrato'},
             {name: undefined, alias: 'Descargar', cb: data => `<button class="btn boton-itsc" onclick="cargarProyecto('${data}')">Descargar</button>`}
         ])
 
@@ -129,6 +118,7 @@ angular.module('app', ['ui.router'])
                 delete p_to_save['$$hashKey']
                 p_to_save.informes = proyecto.informes.map(i => {
                     return {
+                        documentno: i.documentno,
                         s_timeexpense_id: i.s_timeexpense_id,
                         descripcion: i.descripcion,
                         fecha: i.fecha,
@@ -144,12 +134,11 @@ angular.module('app', ['ui.router'])
                     }
                 })
 
-                console.log('proyecto local', p_to_save)
                 await storageProyecto(p_to_save)
                 if (alerta) {
-                    alert("Proyecto guardado exitosamente")
+                    alert("Avance guardado localmente")
                 } else {
-                    $.notify({ title: '<strong>Proyecto guardado exitosamente</strong>', message: ''},{ type: 'success' })
+                    $.notify({ title: '<strong>Avance guardado localmente</strong>', message: ''},{ type: 'success' })
                 }
 
             } catch (error) {
@@ -157,27 +146,26 @@ angular.module('app', ['ui.router'])
                 if (alerta) {
                     alert('Error guardar poryecto '+ error)
                 } else {
-                    $.notify({title: '<strong>Error guardar poryecto</strong>', message: error ? error:''},{ type: 'danger' })
+                    $.notify({title: '<strong>Error guardar avance localmente</strong>', message: error ? error:''},{ type: 'danger' })
                 }                
             }            
         }
 
-        $scope.sincronizar = async proyecto => {
-            console.log('sincronizado poryecto', proyecto)
-
+        $scope.sincronizar = async (proyecto, informe) => {
             try {
-                for (var informe of proyecto.informes) {
-                    console.log('guardando informe', informe)
-                    var id_inforgasto = await guardarInfoGasto(proyecto.c_project_id, informe.s_timeexpense_id, informe.fecha, informe.descripcion, informe.lineas)
-                    
-                    informe.s_timeexpense_id = Number(id_inforgasto)
-                    console.log('informe guardado', informe)                   
-                }
+                var respuesta = await guardarInfoGasto(proyecto.c_project_id, informe.s_timeexpense_id, informe.fecha, informe.descripcion, informe.lineas)
+                respuesta = respuesta.split('___')
+
+                informe.s_timeexpense_id = Number(respuesta[0])
+                informe.documentno = respuesta[1]
+                $scope.$apply()
+
                 $.notify({ title: '<strong>Sincronizado con el servidor</strong>', message: ''},{ type: 'success' })
 
                 $scope.guardar_localmente(proyecto)
 
             } catch (error) {
+                console.log('error', error)
                 $.notify({ title: '<strong>Error de sincronizacion</strong>', message: `${error}`},{ type: 'danger' })
             }
         }
@@ -194,6 +182,7 @@ angular.module('app', ['ui.router'])
         $scope.nuevo_informe = function () {
             if ($scope.proyecto_actual) {
                 $scope.proyecto_actual.informes.push({
+                    documentno: undefined,
                     s_timeexpense_id: 0,
                     descripcion: undefined,
                     fecha: new Date(),
@@ -265,29 +254,36 @@ angular.module('app', ['ui.router'])
         }
 
         $scope.cambio_ubicacion = function (ubicacion_seleccionada) {
-            $scope.fases = fases.filter(f => f.tb_proyecto_ubicaciones_id == ubicacion_seleccionada.tb_proyecto_ubicaciones_id)
-            if ($scope.fases.length > 0) {
-                $scope.fase_seleccionada = $scope.fases[0]
-                $scope.cambio_fase($scope.fase_seleccionada)
+            if (ubicacion_seleccionada === undefined) {
+                $scope.fases = []
+            } else {
+                $scope.fases = fases.filter(f => f.tb_proyecto_ubicaciones_id == ubicacion_seleccionada.tb_proyecto_ubicaciones_id)
             }
+
+            $scope.fase_seleccionada = $scope.fases[0]
+            $scope.cambio_fase($scope.fase_seleccionada)
 
         }
 
         $scope.cambio_fase = function (fase_seleccionada) {
-            $scope.tareas = tareas.filter(t => t.c_projectphase_id == fase_seleccionada.c_projectphase_id)
-
-            if ($scope.tareas.length > 0) {
-                $scope.tarea_seleccionada = $scope.tareas[0]
-                $scope.cambio_tarea($scope.tarea_seleccionada)
+            if (fase_seleccionada === undefined) {
+                $scope.tareas = []
+            } else {
+                $scope.tareas = tareas.filter(t => t.c_projectphase_id == fase_seleccionada.c_projectphase_id)
             }
+
+            $scope.tarea_seleccionada = $scope.tareas[0]
+            $scope.cambio_tarea($scope.tarea_seleccionada)
         }
 
         $scope.cambio_tarea = function (tarea_seleccionada) {
-            $scope.lineas_tarea = lineas_tarea.filter(l => l.c_projecttask_id == tarea_seleccionada.c_projecttask_id)
-
-            if ($scope.lineas_tarea.length > 0) {
-                $scope.producto_seleccionado = $scope.lineas_tarea[0]
+            if (tarea_seleccionada === undefined) {
+                $scope.lineas_tarea =  []
+            } else {
+                $scope.lineas_tarea = lineas_tarea.filter(l => l.c_projecttask_id == tarea_seleccionada.c_projecttask_id)
             }
+
+            $scope.producto_seleccionado = $scope.lineas_tarea[0]
         }
         
         ///////////////////////////////////////////////////
@@ -313,18 +309,6 @@ angular.module('app', ['ui.router'])
         $scope.foo = function () {
             console.log('nada...')
         }
-
-    }])
-    .controller("proyectos_descargados.avance", ["$scope", "$state", "storage", function($scope, $state, storage){
-        $scope.lineas_informe = []
-        $scope.informes = []
-
-        $('#crear_avance_modal').modal('show')
-
-
-
-        console.log('avances....')
-
 
     }])
     .controller("proyectos.cargar", ["$scope", "$state", "storage", function($scope, $state, storage){
@@ -358,6 +342,13 @@ angular.module('app', ['ui.router'])
 
     }])
 
+/**
+ * Funcion que pre-carga todos los archivos estaticos de AngularJS
+ * @param {*} $state 
+ * @param {*} goState 
+ * @param {*} $http 
+ * @param {*} $templateCache 
+ */
 async function loadTemplates($state, goState, $http, $templateCache) {
     try {
         var promises = []
@@ -384,6 +375,14 @@ function cargarProyecto (data) {
     EventBus.dispatch('newState', 'proyectos.cargar', leer(data));
 }
 
+/**
+ * guardarInfoGasto sincroniza con el servidor los informes de gasto
+ * @param {*} proyecto_id 
+ * @param {*} s_timeexpense_id 
+ * @param {*} fecha_infogasto 
+ * @param {*} descripcion 
+ * @param {*} lineas 
+ */
 async function guardarInfoGasto(proyecto_id, s_timeexpense_id, fecha_infogasto, descripcion, lineas) {
 
     s_timeexpense_id = Number(s_timeexpense_id)

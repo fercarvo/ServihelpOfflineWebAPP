@@ -149,7 +149,7 @@
     const db = new PouchDB('test-db-123', {adapter: 'idb'});
 
     async function logout() {
-        if (confirm("Esta seguro que desea salir?")) { 
+        if (confirm("La siguiente acción eliminará toda la información local que no ha sido sincronizada con el servidor de iDempiere")) { 
             try {
                 var doc = await db.destroy()
                 console.log('Se removio el token')
