@@ -4,10 +4,9 @@ var login = require('./login').router
 var { getSecret } = require('./login')
 //var { requestWS } = require('./webservice')
 var { pool, url } = require('../util/DB.js');
-var { requestWS } = require('NodeJS_iDempiereWebService')
+var { requestWS } = require('nodejs_idempierewebservice')
 var moment = require('moment')
 
-//console.log(foo)
 
 router.get('/proyecto/', login.validarSesion, async (req, res, next) => {
     try {
@@ -57,7 +56,7 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
 
         console.log('params', params)
 
-        var data = await requestWS(url, "crear_avance_proyecto_ws", req.session_itsc, user, password, params)
+        var data = await requestWS(url, "crear_avance_proyecto_ws", {...req.session_itsc, username: user, password}, params)
         res.send(data);
 
     } catch (e) {

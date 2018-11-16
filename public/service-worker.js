@@ -7,7 +7,7 @@
  * Este SW servira para incrementar el performance y reducir el trafico de los aplicativos usados en ITSC
  */
 
-const CACHE_NAME = 'Static-ITSC-Servihelp-v1.2'
+const CACHE_NAME = 'Static-ITSC-Servihelp-v2.0'
 
 const static = [
     '/css/sb-admin.css',
@@ -47,10 +47,10 @@ self.addEventListener('fetch', function(event) {
     const destination = event.request.destination;
 
     //El login es siempre network, pero se almacena en cache para logearse en modo offline
-    //if (event.request.method == 'POST' && (RegExp( '/login' ).test( event.request.url ) || RegExp( '/rol' ).test( event.request.url ))) {
-    //    event.respondWith( networkThenCache(event) )
-    //    return;
-    //}
+    if (event.request.method == 'GET' && (RegExp( '/login/data' ).test( event.request.url ) || RegExp( '/login/rol/data' ).test( event.request.url ))) {
+        event.respondWith( networkThenCache(event) )
+        return;
+    }
 
     if (event.request.method != 'GET')
         return;
@@ -125,7 +125,7 @@ async function alwaysCache (event) {
 async function networkThenCache(event) {
     var requestToCache = event.request.clone()
     try {
-        var response = await fetch(event.request, { redirect: 'follow' })
+        var response = await fetch(event.request)
 
         //Si hay respuesta, pero no es 200 ok, se retorna y no se cachea
         if (response.status !== 200 || response.type !== 'basic') {

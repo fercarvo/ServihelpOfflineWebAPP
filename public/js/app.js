@@ -19,7 +19,6 @@ angular.module('app', ['ui.router'])
 
         try {
             var doc = await db.get('itsc-login-token')
-            console.log('token', doc)
 
             EventBus.addEventListener("newState", cambiar)
 
@@ -31,7 +30,7 @@ angular.module('app', ['ui.router'])
             loadTemplates($state, "proyectos_descargados", $http, $templateCache)
         
         } catch (error) {
-            console.log('err token itsc', error);
+            console.error('err token itsc', error);
             window.location.replace(`/login/`)
         }
         
