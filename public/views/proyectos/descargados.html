@@ -44,6 +44,7 @@
                 <th scope="col">Descripción</th>
                 <th scope="col">Fecha</th>
                 <th scope="col">Lineas</th>
+                <th scope="col">Asistencias</th>
                 <th scope="col">Sincronizar</th>
                 <th scope="col">Eliminar</th>
             </tr>
@@ -56,6 +57,11 @@
                 <td>
                     <button ng-click="ver_lineas_informe(i)" type="button" class="btn btn-default" aria-label="Left Align">
                         <span class="fa fa-search" aria-hidden="true"></span>
+                    </button> 
+                </td>
+                <td>
+                    <button ng-click="ver_lineas_asistencias(i)" type="button" class="btn btn-default" aria-label="Left Align">
+                        <span class="fa fa-list-ol" aria-hidden="true"></span>
                     </button> 
                 </td>
                 <td>
@@ -213,7 +219,7 @@
                                         <select 
                                             form="tercero_form" class="form-control" required 
                                             ng-model="tercero" 
-                                            ng-options="t as t.ad_user_id for t in terceros">
+                                            ng-options="t as t.name for t in terceros">
                                             <option value=""></option>
                                         </select>
                                     </td>
@@ -221,10 +227,10 @@
                                         <input type="date" form="tercero_form" ng-model="fecha" required class="form-control">
                                     </td>
                                     <td>
-                                        <input type="time" form="tercero_form" ng-model="desde" required class="form-control">
+                                        <input type="time" form="tercero_form" ng-model="desde" max="{{hasta | date:'HH:mm:ss'}}" required class="form-control">
                                     </td>
                                     <td>
-                                        <input type="time" form="tercero_form" ng-model="hasta" required class="form-control">
+                                        <input type="time" form="tercero_form" ng-model="hasta" min="{{desde | date:'HH:mm:ss'}}" required class="form-control">
                                     </td>
                                     <td>
                                         <form id="tercero_form" ng-submit="nuevo_registro(tercero, fecha, desde, hasta)">
@@ -251,13 +257,13 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr ng-repeat="tercero in informe_actual.terceros">
-                                        <td> {{tercero.tercero.nombre}} </td>
-                                        <td> {{tercero.fecha}} </td>
-                                        <td> {{tercero.desde}} </td>
-                                        <td> {{tercero.hasta}} </td>
+                                    <tr ng-repeat="registro in informe_actual.asistencias">
+                                        <td> {{registro.tercero.name}} </td>
+                                        <td> {{registro.fecha}} </td>
+                                        <td> {{registro.desde}} </td>
+                                        <td> {{registro.hasta}} </td>
                                         <td>
-                                            <button ng-click="eliminar_tercero($index, informe_actual.lineas)" type="button" class="btn btn-default" aria-label="Left Align">
+                                            <button ng-click="eliminar_tercero($index, informe_actual.asistencias)" type="button" class="btn btn-default" aria-label="Left Align">
                                                 <span class="fa fa-times" aria-hidden="true"></span> 
                                             </button> 
                                         </td>
@@ -266,7 +272,7 @@
                         </table>       
                     </div>
                     <form class="card-footer" id="form_lineas" ng-submit="guardar_localmente(proyecto_actual, true)">
-                        <button type="button" class="btn btn-info" ng-click="cerrar_lineas_informe()">Cerrar</button>
+                        <button type="button" class="btn btn-info" data-dismiss="modal">Cerrar</button>
                         <button type="submit" title="Guardar localmente" class="btn btn-info">
                             <span class="fa fa-floppy-o" aria-hidden="true"></span>
                         </button>

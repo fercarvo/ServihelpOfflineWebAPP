@@ -30,6 +30,29 @@ router.get('/proyecto/:id', login.validarSesion, async (req, res, next) => {
     }
 })
 
+router.get('/empleados/', login.validarSesion, async function (req, res, next) {
+    var ad_client_id = Number(req.session_itsc.ad_client_id)
+
+    try {
+        var query = `
+            select 
+                c.c_bpartner_id, 
+                c.name 
+            from c_bpartner c 
+            where 
+                c.isemployee = 'Y' 
+                and c.isactive = 'Y'
+                and c.ad_client_id = ${ad_client_id}::integer`;
+                
+        var { rows } = await pool.query(query);
+        
+        res.set('Cache-Control', 'private, max-age=60')
+        res.json(rows);
+
+    } catch (e) {
+        next(e)
+    }
+})
 
 router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next) => {
     try {

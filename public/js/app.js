@@ -129,6 +129,14 @@ angular.module('app', ['ui.router'])
                                 tarea: l.tarea,
                                 qty: l.qty
                             }
+                        }),
+                        asistencias: i.asistencias.map(a => {
+                            return {
+                                tercero: a.tercero,
+                                fecha: a.fecha,
+                                desde: a.desde,
+                                hasta: a.hasta
+                            }
                         })
                     }
                 })
@@ -185,7 +193,8 @@ angular.module('app', ['ui.router'])
                     s_timeexpense_id: 0,
                     descripcion: undefined,
                     fecha: new Date(),
-                    lineas: []
+                    lineas: [],
+                    asistencias: []
                 })
                 console.log('agrego informe', $scope.proyecto_actual)
             } else {
@@ -196,8 +205,6 @@ angular.module('app', ['ui.router'])
         $scope.ver_lineas_informe = function (informe) {
             $scope.informe_actual = informe
 
-            console.log($scope.ubicacion_seleccionada)
-
             if ($scope.ubicacion_seleccionada === undefined) {
                 $scope.ubicacion_seleccionada = $scope.ubicaciones[0]
                 $scope.cambio_ubicacion($scope.ubicacion_seleccionada)
@@ -206,6 +213,43 @@ angular.module('app', ['ui.router'])
             $('#lineas_informe_proyecto').modal('show')
         }
 
+        
+        $scope.ver_lineas_asistencias = function (informe) {
+            $scope.informe_actual = informe
+
+            console.log('cabecera actual', $scope.informe_actual)
+
+            $('#lineas_registro_empleados').modal('show')
+        }   
+
+        /**
+         * Seccion lineas asistencias
+         */
+
+        $scope.fecha = new Date()
+        $scope.cambio_desde = desde => {
+            $scope.desde_min = desde.toISOString()
+            console.log($scope.desde_min)
+        }
+
+        $scope.cambio_hasta = (hasta) => {
+            $scope.hasta_max = hasta.toISOString()
+            console.log($scope.hasta_max)
+        }
+
+        $scope.terceros = []
+
+        $scope.nuevo_registro = function (tercero, fecha, desde, hasta) {
+
+            console.log($scope.informe_actual)
+
+            $scope.informe_actual.asistencias.push({
+                tercero: tercero,
+                fecha: moment( fecha ).local().format('YYYY-MM-DD'), 
+                desde: moment( desde ).local().format('HH:mm:ss'),
+                hasta: moment( hasta ).local().format('HH:mm:ss')
+            })
+        }
 
         /**
          * Seccion lineas informe
@@ -299,6 +343,17 @@ angular.module('app', ['ui.router'])
                 $scope.$apply();
             })
             .catch(error => console.log('error cargar', error))
+
+        fetch('/empleados/', {credentials: "same-origin"})
+            .then(async res => {
+                if (res.ok) {
+                    var data = await res.text()
+                    $scope.terceros = JSON.parse(data)
+                    $scope.$apply()
+                } else {
+                    alert('NO se pudo cargar los empleados')
+                }
+            })
 
 
         function removeIndex(index, array) {
