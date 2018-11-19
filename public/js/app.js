@@ -254,6 +254,19 @@ angular.module('app', ['ui.router'])
         /**
          * Seccion lineas informe
          */
+
+        $scope.generar_todos = function (ubicacion_seleccionada, fase_seleccionada) {
+            var tareas_filtro = tareas.filter(t => t.c_projectphase_id == fase_seleccionada.c_projectphase_id)
+
+            for (var tarea_seleccionada of tareas_filtro) {
+                var productos = lineas_tarea.filter(l => l.c_projecttask_id == tarea_seleccionada.c_projecttask_id)
+                for (var producto of productos) {
+                    $scope.nueva_linea(ubicacion_seleccionada, fase_seleccionada, tarea_seleccionada, producto)
+                }
+            }
+        }
+
+
         $scope.nueva_linea = function (ubi, fas, tar, prod) {
             let new_ubicacion = {
                 ubicacion: ubi.ubicacion,
