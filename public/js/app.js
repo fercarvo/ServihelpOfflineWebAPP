@@ -160,7 +160,7 @@ angular.module('app', ['ui.router'])
 
         $scope.sincronizar = async (proyecto, informe) => {
             try {
-                var respuesta = await guardarInfoGasto(proyecto.c_project_id, informe.s_timeexpense_id, informe.fecha, informe.descripcion, informe.lineas)
+                var respuesta = await guardarInfoGasto(proyecto.c_project_id, informe.s_timeexpense_id, informe.fecha, informe.descripcion, informe.lineas, informe.asistencias)
                 respuesta = respuesta.split('___')
 
                 informe.s_timeexpense_id = Number(respuesta[0])
@@ -227,9 +227,11 @@ angular.module('app', ['ui.router'])
          */
 
         $scope.fecha = new Date()
+        $scope.desde = moment().startOf('day').add(8, 'hours').toDate() //8 de la manana
+        $scope.hasta = moment().startOf('day').add(17, 'hours').toDate() //5 de la tarde
+
         $scope.cambio_desde = desde => {
-            $scope.desde_min = desde.toISOString()
-            console.log($scope.desde_min)
+            console.log(desde)
         }
 
         $scope.cambio_hasta = (hasta) => {
@@ -240,8 +242,6 @@ angular.module('app', ['ui.router'])
         $scope.terceros = []
 
         $scope.nuevo_registro = function (tercero, fecha, desde, hasta) {
-
-            console.log($scope.informe_actual)
 
             $scope.informe_actual.asistencias.push({
                 tercero: tercero,
@@ -448,9 +448,10 @@ function cargarProyecto (data) {
  * @param {*} s_timeexpense_id 
  * @param {*} fecha_infogasto 
  * @param {*} descripcion 
- * @param {*} lineas 
+ * @param {*} lineas
+ * @param {Array<*>} asistencias Asistencias a ser guardadas 
  */
-async function guardarInfoGasto(proyecto_id, s_timeexpense_id, fecha_infogasto, descripcion, lineas) {
+async function guardarInfoGasto(proyecto_id, s_timeexpense_id, fecha_infogasto, descripcion, lineas, asistencias) {
 
     s_timeexpense_id = Number(s_timeexpense_id)
     proyecto_id = Number(proyecto_id)
@@ -463,12 +464,21 @@ async function guardarInfoGasto(proyecto_id, s_timeexpense_id, fecha_infogasto, 
         }
     })
 
+    asistencias = asistencias.map(es => {
+        return {
+            fecha: es.fecha,
+            desde: es.desde,
+            hasta: es.hasta,
+            tercero: Number(es.tercero.c_bpartner_id)
+        }
+    })
+
     var response = await fetch(`/proyecto/avance/${proyecto_id}/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({descripcion, s_timeexpense_id, fecha_infogasto, lineas})
+        body: JSON.stringify({descripcion, s_timeexpense_id, fecha_infogasto, lineas, asistencias})
     })
 
     if (response.ok) {

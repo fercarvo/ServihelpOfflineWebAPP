@@ -42,7 +42,15 @@ router.get('/empleados/', login.validarSesion, async function (req, res, next) {
             where 
                 c.isemployee = 'Y' 
                 and c.isactive = 'Y'
-                and c.ad_client_id = ${ad_client_id}::integer`;
+                and c.ad_client_id = ${ad_client_id}::integer
+                and c.c_bpartner_id IN (
+                    select hr.C_BPartner_ID 
+                    from HR_Employee hr 
+                    where 
+                        hr.C_BPartner_ID = c.C_BPartner_ID 
+                        and hr.ad_client_id = ${ad_client_id}::integer
+                        and hr.EndDate is null
+                )`;
                 
         var { rows } = await pool.query(query);
         
@@ -62,9 +70,18 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
         var descripcion = req.body.descripcion
         
         console.log(req.body)
-              
+
+        if (!Array.isArray(req.body.lineas) || req.body.lineas.length === 0)
+            throw new Error('No existen lineas de Avance')
+        
         var lineas_proyecto_id = req.body.lineas.map(l => Number(l.c_projectline_id)).join('_')
         var cantidades = req.body.lineas.map(l => Number(l.qty)).join('_')
+
+        //asistencias
+        var asistencia_empleados_id = req.body.asistencias.map(a => Number(a.tercero)).join('_')
+        var asistencia_fechas = req.body.asistencias.map(a => a.fecha).join('_')
+        var asistencias_desde = req.body.asistencias.map(a => a.desde).join('_')
+        var asistencias_hasta = req.body.asistencias.map(a => a.hasta).join('_')
 
         var {user, password} = await getSecret(req.session_itsc.ad_user_id);
 
@@ -74,7 +91,12 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
             {column: "fecha_infogasto", val: fecha_infogasto},
             {column: "Description", val: descripcion},
             {column: "lineas_proyecto_id", val: lineas_proyecto_id},
-            {column: "cantidades", val: cantidades}
+            {column: "cantidades", val: cantidades},
+            
+            {column: "asistencia_empleados_id", val: asistencia_empleados_id},
+            {column: "asistencia_fechas", val: asistencia_fechas},
+            {column: "asistencias_desde", val: asistencias_desde},
+            {column: "asistencias_hasta", val: asistencias_hasta}
         ]
 
         console.log('params', params)
@@ -83,7 +105,7 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
         res.send(data);
 
     } catch (e) {
-        console.log(e)
+        console.error(e)
         next(new Error(e)) 
     }    
 })
