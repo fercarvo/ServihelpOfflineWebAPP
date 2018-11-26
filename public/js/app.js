@@ -33,14 +33,59 @@ angular.module('app', ['ui.router'])
     .controller("proyectos", ["$scope", "$state", "$scope", function($scope, $state, $scope){
         console.log("Hola proyectos")
 
-         cargarTabla('proyectos', '/proyecto/', [
+        $scope.proyectos = []
+
+        fetch('/proyecto/', {credentials: "same-origin"})
+            .then(async res => {
+                if (res.ok) {
+                    var { rows } = await res.json()
+                    console.log(rows)
+                    $scope.proyectos = rows
+                    $scope.$apply()
+
+                } else {
+                    alert('Error en descargar proyectos')
+                }
+            })
+            .catch(err => {
+                console.error(err)
+                alert(err.message)
+            })
+
+
+
+        $scope.descargar = async function (proyecto) {
+            try {
+                var data = await syncProyecto(proyecto)
+                if (window.navigator.onLine) {
+                    console.log('Proyecto descargado/actualizado exitosamente', data)
+                    $.notify({
+                        title: '<strong>Actualización exitosa</strong>',
+                        message: 'Proyecto descargado/actualziado'
+                    },{ type: 'success' })
+                } else {
+                    $.notify({
+                        title: '<strong>Sin conexión</strong>',
+                        message: 'El proyecto se encuentra descargado, pero no se ha podido actualizar.'
+                    },{ type: 'warning' })
+                }                 
+            } catch (error) {
+                $.notify({
+                    title: '<strong>Ha ocurrido un error</strong>',
+                    message: 'Error de sincronizacion'
+                },{ type: 'danger' })
+                console.error('Ha ocurrido un error', error)
+            }
+        }
+
+         /*cargarTabla('proyectos', '/proyecto/', [
             {name: 'codigo', alias: 'Código'},
             {name: 'cliente', alias: 'Cliente'},
             {name: 'proyecto', alias: 'Proyecto'},
             {name: 'descripcion', alias: 'Descripción'},
             {name: 'fechacontrato', alias: 'Fecha Contrato'},
             {name: undefined, alias: 'Descargar', cb: data => `<button class="btn boton-itsc" onclick="cargarProyecto('${data}')">Descargar</button>`}
-        ])
+        ])*/
 
 
 

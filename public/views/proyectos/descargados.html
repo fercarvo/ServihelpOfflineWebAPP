@@ -38,7 +38,7 @@
         </li>
     </ol>
     <div class="table-responsive">
-        <table class="table table-sm">
+        <table class="table table-sm no-more-tables">
             <thead>
                 <tr>
                     <th scope="col">Num. Doc</th>
@@ -52,25 +52,25 @@
             </thead>
             <tbody>
                 <tr ng-repeat="i in proyecto_actual.informes">
-                    <th>{{i.documentno}}</th>
-                    <th> <input class="form-control" form="form_informes" type="text" required ng-model="i.descripcion"></th>
-                    <td> <input class="form-control" form="form_informes" type="date" required ng-model="i.fecha"></td>
-                    <td>
+                    <td data-title="Num. Doc">{{i.documentno || 0}}</td>
+                    <td data-title="Descripción"> <input class="form-control" form="form_informes" type="text" required ng-model="i.descripcion"></td>
+                    <td data-title="Fecha"> <input class="form-control" form="form_informes" type="date" required ng-model="i.fecha"></td>
+                    <td data-title="Lineas">
                         <button ng-click="ver_lineas_informe(i)" type="button" class="btn btn-default" aria-label="Left Align">
                             <span class="fa fa-list-ol" aria-hidden="true"></span>
                         </button> 
                     </td>
-                    <td>
+                    <td data-title="Asistencias">
                         <button ng-click="ver_lineas_asistencias(i)" type="button" class="btn btn-default" aria-label="Left Align">
                             <span class="fa fa-user" aria-hidden="true"></span>
                         </button> 
                     </td>
-                    <td>
+                    <td data-title="Sincronizar">
                         <button ng-click="sincronizar(proyecto_actual, i)" type="button" title="Sincronizar avance" class="btn btn-default" aria-label="Left Align">
                             <span class="fa fa-cloud-upload" aria-hidden="true"></span>
                         </button>
                     </td>
-                    <td>
+                    <td data-title="Eliminar">
                         <button ng-disabled="i.s_timeexpense_id > 0" ng-click="eliminar_informe($index, proyecto_actual.informes)" type="button" class="btn btn-default" aria-label="Left Align">
                             <span class="fa fa-times" aria-hidden="true"></span> 
                         </button> 
@@ -163,7 +163,7 @@
                     
                 </div>
                 <div class="card-body table-responsive">
-                    <table class="table table-sm">
+                    <table class="table table-sm no-more-tables">
                             <thead>
                                 <tr>
                                     <th scope="col">Ubicación</th>
@@ -177,13 +177,13 @@
                             </thead>
                             <tbody>
                                 <tr ng-repeat="linea in informe_actual.lineas">
-                                    <td> {{linea.ubicacion.ubicacion}} </td>
-                                    <td> {{linea.fase.fase}} </td>
-                                    <td> {{linea.tarea.tarea}} </td>
-                                    <td> {{linea.producto.producto}} </td>
-                                    <td title="PlannedQty"> {{linea.producto.plannedqty}} </td>
-                                    <td> <input title="Linea informe de gasto -> Cantidad (Qty)" class="form-control" form="form_lineas" type="number" required="required" ng-model="linea.qty" min="0" step="0.01"></th>
-                                    <td>
+                                    <td data-title="Ubicación"> {{linea.ubicacion.ubicacion}} </td>
+                                    <td data-title="Fase"> {{linea.fase.fase}} </td>
+                                    <td data-title="Tarea"> {{linea.tarea.tarea}} </td>
+                                    <td data-title="Producto"> {{linea.producto.producto}} </td>
+                                    <td data-title="Cant Presup." title="PlannedQty"> {{linea.producto.plannedqty}} </td>
+                                    <td data-title="Cant Av."> <input title="Linea informe de gasto -> Cantidad (Qty)" class="form-control" form="form_lineas" type="number" required="required" ng-model="linea.qty" min="0" step="0.01"></th>
+                                    <td data-title="Eliminar">
                                         <button ng-click="eliminar_linea($index, informe_actual.lineas)" type="button" class="btn btn-default" aria-label="Left Align">
                                             <span class="fa fa-times" aria-hidden="true"></span> 
                                         </button> 
@@ -254,7 +254,7 @@
                         
                     </div>
                     <div class="card-body table-responsive">
-                        <table class="table table-sm">
+                        <table class="table table-sm no-more-tables">
                                 <thead>
                                     <tr>
                                         <th scope="col">Tercero</th>
@@ -266,11 +266,11 @@
                                 </thead>
                                 <tbody>
                                     <tr ng-repeat="registro in informe_actual.asistencias">
-                                        <td> {{registro.tercero.name}} </td>
-                                        <td> {{registro.fecha}} </td>
-                                        <td> {{registro.desde}} </td>
-                                        <td> {{registro.hasta}} </td>
-                                        <td>
+                                        <td data-title="Tercero"> {{registro.tercero.name}} </td>
+                                        <td data-title="Fecha"> {{registro.fecha}} </td>
+                                        <td data-title="Desde"> {{registro.desde}} </td>
+                                        <td data-title="Hasta"> {{registro.hasta}} </td>
+                                        <td data-title="Eliminar">
                                             <button ng-click="eliminar_linea($index, informe_actual.asistencias)" type="button" class="btn btn-default" aria-label="Left Align">
                                                 <span class="fa fa-times" aria-hidden="true"></span> 
                                             </button> 

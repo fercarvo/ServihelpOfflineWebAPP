@@ -4,4 +4,29 @@
     </li>
 </ol>
 
-<table id="proyectos" style="width:100%"> </table>
+<table class="table table-sm no-more-tables">
+        <thead>
+            <tr>
+                <th scope="col">Código</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">Proyecto</th>
+                <th scope="col">Descripción</th>
+                <th scope="col">Fecha Contrato</th>
+                <th scope="col">Descargar</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="p in proyectos">
+                <td data-title="Código"> {{p.codigo || '-'}} </td>
+                <td data-title="Cliente"> {{p.clinete || '-'}} </td>
+                <td data-title="Proyecto"> {{p.proyecto || '-'}} </td>
+                <td data-title="Descripción"> {{p.descripcion || '-'}} </td>
+                <td data-title="Fecha Contrato" title="PlannedQty"> {{p.fechacontrato || '-'}} </td>
+                <td data-title="Descargar">
+                    <button ng-click="descargar(p)" type="button" class="btn btn-default" aria-label="Left Align">
+                        <span class="fa fa-download" aria-hidden="true"></span> 
+                    </button> 
+                </td>
+            </tr>
+        </tbody>
+</table> 
