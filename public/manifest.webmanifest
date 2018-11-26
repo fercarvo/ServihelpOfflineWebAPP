@@ -1,0 +1,15 @@
+{
+    "background_color": "#071625",
+    "description": "Servihelp Offline Web App",
+    "display": "fullscreen",
+    "icons": [
+      {
+        "src": "/icono-app.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      }
+    ],
+    "name": "ITSC Web App",
+    "short_name": "Servihelp",
+    "start_url": "/"
+}
