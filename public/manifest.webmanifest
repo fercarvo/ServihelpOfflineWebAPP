@@ -1,7 +1,7 @@
 {
     "background_color": "#071625",
     "description": "Servihelp Offline Web App",
-    "display": "fullscreen",
+    "display": "standalone",
     "icons": [
       {
         "src": "/icono-app.png",
