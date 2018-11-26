@@ -7,19 +7,10 @@
  * Este SW servira para incrementar el performance y reducir el trafico de los aplicativos usados en ITSC
  */
 
-const CACHE_NAME = 'Static-ITSC-Servihelp-v2.0'
+const CACHE_NAME = 'Static-ITSC-Servihelp-v2.2'
 
 const static = [
-    '/css/sb-admin.css',
     '/js/app.js',
-    '/js/EventBus.js',
-    '/js/sb-admin.js',
-    '/login/bg.jpg',
-    '/login/styles.css',
-    '/views/proyectos/cargar_proyecto.html',
-    '/views/proyectos/listar.html',
-    '/favicon.ico',
-    '/logo_itsc.png',
     '/',
     '/login/'
 ]

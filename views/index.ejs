@@ -11,6 +11,7 @@
   <meta name="msapplication-navbutton-color" content="#071625">
   <!-- iOS Safari -->
   <meta name="apple-mobile-web-app-status-bar-style" content="#071625">
+  
   <link rel='shortcut icon' type='image/x-icon' href='/favicon.ico' />
   <link rel="manifest" href="/manifest.webmanifest">
 
@@ -116,12 +117,12 @@
             </a>
         </li>
 
-        <li class="nav-item" id="fullscreen" data-placement="right" data-toggle="tooltip" title="Full Screnn">
+        <!--<li class="nav-item" onclick="fullscreen(this)" data-placement="right" data-toggle="tooltip" title="Full Screnn">
           <a class="nav-link">
             <i class="fa fa-fw fa-expand"></i>
             <span class="nav-link-text">Full Screen</span>
           </a>
-        </li>
+        </li>-->
 
       </ul>
       <ul class="navbar-nav sidenav-toggler">
@@ -189,7 +190,7 @@
     }
 
     //Soporte de full screen
-    document.getElementById('fullscreen').addEventListener('click', function (event){
+    function fullscreen (element) {
 
         if (document.fullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled) {
 
@@ -205,7 +206,7 @@
                     document.msExitFullscreen();
                 }
 
-                document.querySelector("#fullscreen i").className = 'fa fa-fw fa-expand'
+                element.querySelector("i").className = 'fa fa-fw fa-expand'
 
             } else {
                 //No esta en modo full screen
@@ -219,20 +220,26 @@
                     document.body.msRequestFullscreen();
                 }
 
-                document.querySelector("#fullscreen i").className = 'fa fa-fw fa-compress'
+                element.querySelector("i").className = 'fa fa-fw fa-compress'
             }        
 
         } else {
             alert("Su navegador no soporta Full Screen")
         }
-    }, false)
+    }
 
 
 </script>
 <script src="/js/app.js"></script>
 
 <script>
+    $('.nav-item').on('click', function() {
+        var element =  $('.navbar-toggler-right')
 
+        if ( element.is(":visible") ) {
+            element.click()
+        } 
+    })
 
 </script>
 </body>

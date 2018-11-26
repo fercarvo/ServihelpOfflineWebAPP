@@ -2,14 +2,13 @@ angular.module('app', ['ui.router'])
     .config(["$stateProvider", "$compileProvider", function ($stateProvider, $compileProvider) {
         $stateProvider
             .state('proyectos', {
+                url: '/proyectos',
                 templateUrl: '/views/proyectos/listar.html',
                 controller: 'proyectos'
             })
-            .state('proyectos.cargar', {
-                templateUrl: '/views/proyectos/cargar_proyecto.html',
-                controller: 'proyectos.cargar'
-            })  
+
             .state('proyectos_descargados', { //proyectos_descargados.avance
+                url: '/proyectos_descargados',
                 templateUrl: '/views/proyectos/descargados.html',
                 controller: 'proyectos_descargados'
             })
@@ -19,13 +18,6 @@ angular.module('app', ['ui.router'])
 
         try {
             var doc = await db.get('itsc-login-token')
-
-            EventBus.addEventListener("newState", cambiar)
-
-            function cambiar(evt, data) {
-                op.data = data;
-                $state.go(evt.target);
-            }
 
             loadTemplates($state, "proyectos_descargados", $http, $templateCache)
         
@@ -305,10 +297,6 @@ angular.module('app', ['ui.router'])
 
         $scope.eliminar_linea = removeIndex
 
-        $scope.cerrar_lineas_informe = function () {
-            $('#lineas_informe_proyecto').modal('hide')
-        }
-
         $scope.cambio_ubicacion = function (ubicacion_seleccionada) {
             if (ubicacion_seleccionada === undefined) {
                 $scope.fases = []
@@ -378,36 +366,6 @@ angular.module('app', ['ui.router'])
         }
 
     }])
-    .controller("proyectos.cargar", ["$scope", "$state", "storage", function($scope, $state, storage){
-
-
-        (async function () {
-            try {
-                var data = await syncProyecto(storage.data)
-                if (window.navigator.onLine) {
-                    console.log('Proyecto descargado/actualizado exitosamente', data)
-                    $.notify({
-                        title: '<strong>Actualización exitosa</strong>',
-                        message: 'Proyecto descargado/actualziado'
-                    },{ type: 'success' })
-                } else {
-                    $.notify({
-                        title: '<strong>Sin conexión</strong>',
-                        message: 'El proyecto se encuentra descargado, pero no se ha podido actualizar.'
-                    },{ type: 'warning' })
-                }                 
-            } catch (error) {
-                $.notify({
-                    title: '<strong>Ha ocurrido un error</strong>',
-                    message: 'Error de sincronizacion'
-                },{ type: 'danger' })
-                console.log('Ha ocurrido un error', error)
-            } finally {
-                $state.go("proyectos")
-            }
-        })() 
-
-    }])
 
 /**
  * Funcion que pre-carga todos los archivos estaticos de AngularJS
@@ -438,8 +396,30 @@ async function loadTemplates($state, goState, $http, $templateCache) {
     
 }
 
-function cargarProyecto (data) {
-    EventBus.dispatch('newState', 'proyectos.cargar', leer(data));
+async function cargarProyecto (data) {
+    data = leer(data)
+
+    try {
+        var data = await syncProyecto(data)
+        if (window.navigator.onLine) {
+            console.log('Proyecto descargado/actualizado exitosamente', data)
+            $.notify({
+                title: '<strong>Actualización exitosa</strong>',
+                message: 'Proyecto descargado/actualziado'
+            },{ type: 'success' })
+        } else {
+            $.notify({
+                title: '<strong>Sin conexión</strong>',
+                message: 'El proyecto se encuentra descargado, pero no se ha podido actualizar.'
+            },{ type: 'warning' })
+        }                 
+    } catch (error) {
+        $.notify({
+            title: '<strong>Ha ocurrido un error</strong>',
+            message: 'Error de sincronizacion'
+        },{ type: 'danger' })
+        console.error('Ha ocurrido un error', error)
+    }
 }
 
 /**
