@@ -6,7 +6,7 @@
     </ol>  
     
     <div class="table-responsive">
-        <table class="table table-sm">
+        <table class="table table-sm table-striped table-bordered no-more-tables">
             <thead>
                 <tr>
                     <th scope="col">Código</th>
@@ -17,10 +17,10 @@
             </thead>
             <tbody>
                 <tr ng-repeat="p in proyectos">
-                    <th scope="row">{{p.codigo}}</th>
-                    <td> {{p.proyecto}} </td>
-                    <td> {{p.descripcion}} </td>
-                    <td>
+                    <td data-title="Código">{{p.codigo || '-'}}</td>
+                    <td data-title="Proyecto"> {{p.proyecto || '-'}} </td>
+                    <td data-title="Descripción"> {{p.descripcion || '-'}} </td>
+                    <td data-title="Avance">
                         <button ng-click="ver_informes(p)" title="Ver/crear avance" class="btn btn-default" aria-label="Left Align">
                             <span class="fa fa-search" aria-hidden="true"></span>
                         </button>
@@ -38,7 +38,7 @@
         </li>
     </ol>
     <div class="table-responsive">
-        <table class="table table-sm no-more-tables">
+        <table class="table table-sm table-striped table-bordered no-more-tables">
             <thead>
                 <tr>
                     <th scope="col">Num. Doc</th>
@@ -163,7 +163,7 @@
                     
                 </div>
                 <div class="card-body table-responsive">
-                    <table class="table table-sm no-more-tables">
+                    <table class="table table-sm table-striped table-bordered no-more-tables">
                             <thead>
                                 <tr>
                                     <th scope="col">Ubicación</th>
@@ -254,7 +254,7 @@
                         
                     </div>
                     <div class="card-body table-responsive">
-                        <table class="table table-sm no-more-tables">
+                        <table class="table table-sm table-striped table-bordered no-more-tables">
                                 <thead>
                                     <tr>
                                         <th scope="col">Tercero</th>
