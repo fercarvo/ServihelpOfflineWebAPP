@@ -17,7 +17,7 @@ angular.module('app', ['ui.router'])
     .run(["$state", "$http", "$templateCache", "storage", async function ($state, $http, $templateCache, op) {
 
         try {
-            var doc = await db.get('itsc-login-token')
+            await db.get('itsc-login-token')
 
             loadTemplates($state, "proyectos_descargados", $http, $templateCache)
         
@@ -190,7 +190,7 @@ angular.module('app', ['ui.router'])
                 }
 
             } catch (error) {
-                console.log('Error', error)
+                console.error(error)
                 if (alerta) {
                     alert('Error guardar poryecto '+ error)
                 } else {
@@ -199,9 +199,13 @@ angular.module('app', ['ui.router'])
             }            
         }
 
-        $scope.sincronizar = async (proyecto, informe) => {
+
+        $scope.sincronizar = async function (proyecto, informe) {
+            
+            document.body.style.pointerEvents = "none" //Se bloquean los clicks
+
             try {
-                var respuesta = await guardarInfoGasto(proyecto.c_project_id, informe.s_timeexpense_id, informe.fecha, informe.descripcion, informe.lineas, informe.asistencias)
+                var respuesta = await guardarInfoGasto(proyecto.c_project_id, informe)
                 respuesta = respuesta.split('___')
 
                 informe.s_timeexpense_id = Number(respuesta[0])
@@ -213,8 +217,10 @@ angular.module('app', ['ui.router'])
                 $scope.guardar_localmente(proyecto)
 
             } catch (error) {
-                console.log('error', error)
+                console.error('error sincronizar', error)
                 $.notify({ title: '<strong>Error de sincronizacion</strong>', message: `${error}`},{ type: 'danger' })
+            } finally {
+                document.body.style.pointerEvents = "all" //Se activan nuevamente los clicks
             }
         }
 
@@ -483,27 +489,41 @@ async function cargarProyecto (data) {
 
 /**
  * guardarInfoGasto sincroniza con el servidor los informes de gasto
- * @param {*} proyecto_id 
- * @param {*} s_timeexpense_id 
- * @param {*} fecha_infogasto 
- * @param {*} descripcion 
- * @param {*} lineas
- * @param {Array<*>} asistencias Asistencias a ser guardadas 
+ * @param {number} proyecto_id Id del Proyecto
+ * @param {Object} avance Avance a ser sincronizado con iDempiere
+ * @param {number} avance.s_timeexpense_id Id del informe de gasto (cabecera avance)
+ * @param {Date} avance.fecha Fecha del avance
+ * @param {string} avance.descripcion Descripcion del proyecto
+ * @param {number} avance.tercero C_Partner_ID del que crea el avance
+ * @param {string} avance.trabajo_realizado Descripcion del trabajo realziado
+ * @param {string} avance.observacion_cliente Observaciones del cliente
+ * @param {string} avance.datos_tecnicos Datos tecnicos
+ * @param {Array<*>} avance.lineas Lineas del informe de gasto (lineas de avance)
+ * @param {Array<*>} avance.asistencias Lineas de Asistencias a ser guardadas
+ * 
+ * @returns {Promise<string>} Texto de exito, reject Promise en caso de error
  */
-async function guardarInfoGasto(proyecto_id, s_timeexpense_id, fecha_infogasto, descripcion, lineas, asistencias) {
+async function guardarInfoGasto(proyecto_id, avance) {
 
-    s_timeexpense_id = Number(s_timeexpense_id)
     proyecto_id = Number(proyecto_id)
-    descripcion = `${descripcion ? descripcion : ''}`
 
-    lineas = lineas.map(linea => {
+    var s_timeexpense_id = Number(avance.s_timeexpense_id)
+    var descripcion = `${avance.descripcion ? avance.descripcion : ''}`
+    var fecha_infogasto = avance.fecha
+
+    var tercero = Number( avance.tercero )
+    var trabajo_realizado = avance.trabajo_realizado
+    var observacion_cliente = avance.observacion_cliente
+    var datos_tecnicos = avance.datos_tecnicos
+
+    var lineas = avance.lineas.map(linea => {
         return {
             c_projectline_id: Number(linea.producto.c_projectline_id),
             qty: Number(linea.qty)
         }
     })
 
-    asistencias = asistencias.map(es => {
+    var asistencias = avance.asistencias.map(es => {
         return {
             fecha: es.fecha,
             desde: es.desde,
@@ -517,16 +537,20 @@ async function guardarInfoGasto(proyecto_id, s_timeexpense_id, fecha_infogasto, 
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({descripcion, s_timeexpense_id, fecha_infogasto, lineas, asistencias})
+        body: JSON.stringify({
+            descripcion, 
+            s_timeexpense_id, 
+            fecha_infogasto, 
+            lineas, 
+            asistencias, tercero, trabajo_realizado, observacion_cliente, datos_tecnicos
+        })
     })
 
     if (response.ok) {
         return await response.text()
     } else {
-        console.log(response.status)
         throw new Error(await response.text())
-    }  
-    
+    }    
 }
 
 function getProyectos (c_project_id) {

@@ -66,11 +66,13 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
     try {
         var id_proyecto = Number(req.params.id);
         var id_infogasto = Number(req.body.s_timeexpense_id)
-        var fecha_infogasto = moment( new Date(req.body.fecha_infogasto) ).format('YYYY-MM-DD hh:mm:ss')
+        var fecha_infogasto = moment( new Date(req.body.fecha_infogasto) ).local().format('YYYY-MM-DD hh:mm:ss')
         var descripcion = req.body.descripcion
+        var c_bpartner_id = req.body.tercero
+        var trabajo_realizado = req.body.trabajo_realizado
+        var observacion_cliente = req.body.observacion_cliente
+        var datos_tecnicos = req.body.datos_tecnicos
         
-        console.log(req.body)
-
         if (!Array.isArray(req.body.lineas) || req.body.lineas.length === 0)
             throw new Error('No existen lineas de Avance')
         
@@ -90,6 +92,13 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
             {column: "S_TimeExpense_ID", val: id_infogasto},
             {column: "fecha_infogasto", val: fecha_infogasto},
             {column: "Description", val: descripcion},
+
+            {column: 'C_BPartner_ID', val: c_bpartner_id},
+            {column: 'trabajo_realizado', val: trabajo_realizado},
+            {column: 'observacion_cliente', val: observacion_cliente},
+            {column: 'datos_tecnicos', val: datos_tecnicos},
+
+
             {column: "lineas_proyecto_id", val: lineas_proyecto_id},
             {column: "cantidades", val: cantidades},
             
@@ -105,7 +114,6 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
         res.send(data);
 
     } catch (e) {
-        console.error(e)
         next(new Error(e)) 
     }    
 })
