@@ -43,6 +43,7 @@
                 <tr>
                     <th scope="col">Num. Doc</th>
                     <th scope="col">Descripción</th>
+                    <th scope="col">Editar</th>
                     <th scope="col">Fecha</th>
                     <th scope="col">Lineas</th>
                     <th scope="col">Asistencias</th>
@@ -54,6 +55,11 @@
                 <tr ng-repeat="i in proyecto_actual.informes">
                     <td data-title="Num. Doc">{{i.documentno || 0}}</td>
                     <td data-title="Descripción"> <input class="form-control" form="form_informes" type="text" required ng-model="i.descripcion"></td>
+                    <td data-title="Editar">
+                        <button ng-click="editar_informe(i)" type="button" class="btn btn-default" aria-label="Left Align">
+                            <span class="fa fa-pencil-square-o" aria-hidden="true"></span>
+                        </button> 
+                    </td>
                     <td data-title="Fecha"> <input class="form-control" form="form_informes" type="date" required ng-model="i.fecha"></td>
                     <td data-title="Lineas">
                         <button ng-click="ver_lineas_informe(i)" type="button" class="btn btn-default" aria-label="Left Align">
@@ -92,12 +98,77 @@
 
 
 
+<div class="modal fade" id="cabecera_informe" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="card">
+                <div style="font-weight: bold;" class="card-header">          
+                    Cabecera Avance
+                </div>
+                <div class="card-body table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <tbody>
+                            <tr>
+                                <td style="font-weight: bold"> Descripción </td>
+                                <td > 
+                                    <input 
+                                        class="form-control" 
+                                        form="form_cabecera_avance" 
+                                        type="text" required 
+                                        ng-model="informe_actual.descripcion"> 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold"> Tercero </td>
+                                <td> 
+                                    <select 
+                                        form="form_cabecera_avance" class="form-control" required 
+                                        ng-model="informe_actual.tercero" 
+                                        ng-options="t.c_bpartner_id as t.name for t in terceros">
+                                        <option value=""></option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold"> Trabajo Realizado </td>
+                                <td > 
+                                    <input class="form-control" form="form_cabecera_avance" type="text" required ng-model="informe_actual.trabajo_realizado"> 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold"> Obs. Cliente </td>
+                                <td > 
+                                    <input class="form-control" form="form_cabecera_avance" type="text" required ng-model="informe_actual.observacion_cliente"> 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: bold"> Datos Tec. </td>
+                                <td > 
+                                    <input class="form-control" form="form_cabecera_avance" type="text" required ng-model="informe_actual.datos_tecnicos"> 
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>       
+                </div>
+                <form class="card-footer" id="form_cabecera_avance" ng-submit="guardar_localmente(proyecto_actual, true)">
+                    <button type="button" class="btn btn-info" data-dismiss="modal">Ocultar</button>
+                    <button type="submit" title="Guardar localmente" class="btn btn-info">
+                        <span class="fa fa-floppy-o" aria-hidden="true"></span>
+                    </button>
+                </form>
+            </div>            
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+
 <div class="modal fade" id="lineas_informe_proyecto" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="card">
                 <div class="card-header"> 
-                    <table>
+                    <!--<table>
                         <thead>
                             <tr>
                                 <th scope="col">Ubicación</th>
@@ -159,9 +230,76 @@
                             </tr>
                         </tbody>
                         
-                    </table>              
-                    
+                    </table>-->
+                    <style>
+                        .form-row {
+                            margin-bottom: 7px;
+                        }
+                        .form-group {
+                            margin-bottom: 0;
+                        }
+
+                        .form-group label {
+                            margin-bottom: 0;
+                            font-weight: bold;
+                        }
+                    </style>
+                    <form 
+                        class="form-row" 
+                        id="ubicacion_select" 
+                        ng-submit="nueva_linea(ubicacion_seleccionada, fase_seleccionada, tarea_seleccionada, producto_seleccionado)">
+                        
+                        <div class="form-group col-md-3">
+                            <label >Ubicación</label>
+                            <select 
+                                form="ubicacion_select" class="form-control" required 
+                                ng-model="ubicacion_seleccionada" 
+                                ng-change="cambio_ubicacion(ubicacion_seleccionada)"
+                                ng-options="u as u.ubicacion for u in ubicaciones">
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="">Ingenieria</label>
+                            <select 
+                                form="ubicacion_select" class="form-control" required 
+                                ng-model="fase_seleccionada" 
+                                ng-change="cambio_fase(fase_seleccionada)"
+                                ng-options="f as f.fase for f in fases">
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="">Tarea</label>
+                            <select 
+                                form="ubicacion_select" class="form-control" required 
+                                ng-model="tarea_seleccionada" 
+                                ng-change="cambio_tarea(tarea_seleccionada)"
+                                ng-options="t as t.tarea for t in tareas">
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="">Producto</label>
+                            <select 
+                                form="ubicacion_select" class="form-control" required 
+                                ng-model="producto_seleccionado"
+                                ng-options="l as l.producto for l in lineas_tarea">
+                                <option value=""></option>
+                            </select>    
+                        </div>             
+                    </form>
+
+                    <div >
+                        <button type="submit" form="ubicacion_select" class="btn btn-info">
+                            <span class="fa fa-plus" aria-hidden="true"></span>
+                        </button>
+                        <button type="button" class="btn btn-info" ng-click="generar_todos(ubicacion_seleccionada, fase_seleccionada)" title="Generar desde Ubicacion - Ingenieria">
+                            <span class="fa fa-retweet" aria-hidden="true"></span>
+                        </button>
+                    </div >                    
                 </div>
+
                 <div class="card-body table-responsive">
                     <table class="table table-sm table-striped table-bordered no-more-tables">
                             <thead>
@@ -210,47 +348,37 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="card">
-                    <div class="card-header table-responsive"> 
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th scope="col">Tercero</th>
-                                    <th scope="col">Fecha</th>
-                                    <th scope="col">Desde</th>
-                                    <th scope="col">Hasta</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <select 
-                                            form="tercero_form" class="form-control" required 
-                                            ng-model="tercero" 
-                                            ng-options="t as t.name for t in terceros">
-                                            <option value=""></option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input type="date" form="tercero_form" ng-model="fecha" required class="form-control">
-                                    </td>
-                                    <td>
-                                        <input type="time" form="tercero_form" ng-model="desde" required class="form-control">
-                                    </td>
-                                    <td>
-                                        <input type="time" form="tercero_form" ng-model="hasta" min="{{desde | date:'HH:mm:ss'}}" required class="form-control">
-                                    </td>
-                                    <td>
-                                        <form id="tercero_form" ng-submit="nuevo_registro(tercero, fecha, desde, hasta)">
-                                            <button type="submit" class="btn btn-info">
-                                                <span class="fa fa-plus" aria-hidden="true"></span>
-                                            </button>
-                                        </form>                                   
-                                    </td>
-                                </tr>
-                            </tbody>
+                    <div class="card-header table-responsive">
+                        <form
+                            class="form-row"  
+                            id="tercero_form" 
+                            ng-submit="nuevo_registro(tercero, fecha, desde, hasta)">
                             
-                        </table>              
+                            <div class="form-group col-md-3">
+                                <label >Tercero</label>
+                                <select 
+                                    form="tercero_form" class="form-control" required 
+                                    ng-model="tercero" 
+                                    ng-options="t as t.name for t in terceros">
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label >Fecha</label>
+                                <input type="date" form="tercero_form" ng-model="fecha" required class="form-control">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label >Desde</label>
+                                <input type="time" form="tercero_form" ng-model="desde" required class="form-control">
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label >Hasta</label>
+                                <input type="time" form="tercero_form" ng-model="hasta" min="{{desde | date:'HH:mm:ss'}}" required class="form-control">
+                            </div>
+                        </form> 
+                        <button form="tercero_form" type="submit" class="btn btn-info">
+                            <span class="fa fa-plus" aria-hidden="true"></span>
+                        </button>             
                         
                     </div>
                     <div class="card-body table-responsive">

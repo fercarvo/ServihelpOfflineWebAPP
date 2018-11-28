@@ -158,6 +158,10 @@ angular.module('app', ['ui.router'])
                         s_timeexpense_id: i.s_timeexpense_id,
                         descripcion: i.descripcion,
                         fecha: i.fecha,
+                        tercero: i.tercero,
+                        trabajo_realizado: i.trabajo_realizado,
+                        observacion_cliente: i.observacion_cliente,
+                        datos_tecnicos: i.datos_tecnicos,
                         lineas: i.lineas.map(l => {
                             return {
                                 ubicacion: l.ubicacion,
@@ -230,10 +234,14 @@ angular.module('app', ['ui.router'])
                     s_timeexpense_id: 0,
                     descripcion: undefined,
                     fecha: new Date(),
+                    tercero: undefined,
+                    trabajo_realizado: undefined,
+                    observacion_cliente: undefined,
+                    datos_tecnicos: undefined,
                     lineas: [],
                     asistencias: []
                 })
-                console.log('agrego informe', $scope.proyecto_actual)
+
             } else {
                 alert('Seleccione un proyecto')
             }
@@ -257,7 +265,13 @@ angular.module('app', ['ui.router'])
             console.log('cabecera actual', $scope.informe_actual)
 
             $('#lineas_registro_empleados').modal('show')
-        }   
+        }
+        
+        $scope.editar_informe = function (informe) {
+            $scope.informe_actual = informe
+            $('#cabecera_informe').modal('show')
+            console.log('Editando informe....')
+        }
 
         /**
          * Seccion lineas asistencias
