@@ -66,7 +66,7 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
     try {
         var id_proyecto = Number(req.params.id);
         var id_infogasto = Number(req.body.s_timeexpense_id)
-        var fecha_infogasto = moment( new Date(req.body.fecha_infogasto) ).local().format('YYYY-MM-DD hh:mm:ss')
+        var fecha_infogasto = moment( new Date(req.body.fecha_infogasto) ).local().format('YYYY-MM-DD') + ' 00:00:00'
         var descripcion = req.body.descripcion
         var c_bpartner_id = req.body.tercero
         var trabajo_realizado = req.body.trabajo_realizado
