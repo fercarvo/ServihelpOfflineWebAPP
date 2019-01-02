@@ -247,7 +247,7 @@
                     <form 
                         class="form-row" 
                         id="ubicacion_select" 
-                        ng-submit="nueva_linea(ubicacion_seleccionada, fase_seleccionada, tarea_seleccionada, producto_seleccionado)">
+                        ng-submit="nueva_linea(ubicacion_seleccionada, ingenieria_seleccionada, fase_seleccionada, tarea_seleccionada, producto_seleccionado)">
                         
                         <div class="form-group col-md-3">
                             <label >Ubicación</label>
@@ -261,6 +261,16 @@
                         </div>
                         <div class="form-group col-md-3">
                             <label for="">Ingenieria</label>
+                            <select 
+                                form="ubicacion_select" class="form-control" required 
+                                ng-model="ingenieria_seleccionada" 
+                                ng-change="cambio_ingenieria(ingenieria_seleccionada)"
+                                ng-options="i as i.ingenieria for i in ingenierias">
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="">Fase</label>
                             <select 
                                 form="ubicacion_select" class="form-control" required 
                                 ng-model="fase_seleccionada" 
@@ -305,7 +315,7 @@
                             <thead>
                                 <tr>
                                     <th scope="col">Ubicación</th>
-                                    <th scope="col">Fase</th>
+                                    <th scope="col">Fase Proy.</th>
                                     <th scope="col">Tarea</th>
                                     <th scope="col">Producto</th>
                                     <th scope="col">Cant Presup.</th>

@@ -22,7 +22,7 @@ router.get('/proyecto/:id', login.validarSesion, async (req, res, next) => {
     var id_proyecto = Number(req.params.id)
 
     try {
-        var query = `select * from vw_proyectodetalle where c_project_id = (${id_proyecto})::integer`;
+        var query = `select * from vw_proyectodetalle_2 where c_project_id = (${id_proyecto})::integer`;
         var data = await pool.query(query);
         res.json(parseDBdata(data));  
     } catch (e) {

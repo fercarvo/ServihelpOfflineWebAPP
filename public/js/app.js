@@ -78,16 +78,6 @@ angular.module('app', ['ui.router'])
             }
         }
 
-         /*cargarTabla('proyectos', '/proyecto/', [
-            {name: 'codigo', alias: 'Código'},
-            {name: 'cliente', alias: 'Cliente'},
-            {name: 'proyecto', alias: 'Proyecto'},
-            {name: 'descripcion', alias: 'Descripción'},
-            {name: 'fechacontrato', alias: 'Fecha Contrato'},
-            {name: undefined, alias: 'Descargar', cb: data => `<button class="btn boton-itsc" onclick="cargarProyecto('${data}')">Descargar</button>`}
-        ])*/
-
-
 
     }])
     .controller("proyectos_descargados", ["$scope", "$state", "storage", function($scope, $state, storage){
@@ -95,6 +85,7 @@ angular.module('app', ['ui.router'])
         $scope.informes = []
         
         var ubicaciones = [] //ubicaciones del proyecto
+        var ingenierias = []
         var fases = [] //fases de la ubicacion y del proyecto
         var tareas = [] //tareas del proyecto seleccionado
         var lineas_tarea = [] //lineas del proyecto seleccionado
@@ -104,6 +95,7 @@ angular.module('app', ['ui.router'])
         //$scope.ubicacion_seleccionada = null
 
         $scope.ubicaciones = []
+        $scope.ingenierias = []
         $scope.fases = []
         $scope.tareas = []
         $scope.lineas_tarea = []
@@ -117,6 +109,7 @@ angular.module('app', ['ui.router'])
         $scope.ver_informes = async proyecto => {
 
             var data = await loadProyectoData(proyecto)
+            console.log('data', data)
             $scope.mostrar_proyectos = false;
             $scope.mostrar_informes = true;
             //$('#informes_proyecto').modal('show')
@@ -131,11 +124,13 @@ angular.module('app', ['ui.router'])
             console.log('creando avance de proyecto', proyecto)
 
             ubicaciones = data.ubicaciones
+            ingenierias = data.ingenierias
             fases = data.fases
             tareas = data.tareas
             lineas_tarea = data.lineas_tarea
             
             $scope.ubicaciones = ubicaciones
+            $scope.ingenierias = ingenierias
             $scope.fases = fases
             $scope.tareas = tareas
             $scope.lineas_tarea = lineas_tarea
@@ -324,14 +319,14 @@ angular.module('app', ['ui.router'])
         }
 
 
-        $scope.nueva_linea = function (ubi, fas, tar, prod) {
+        $scope.nueva_linea = function (ubi, ing, fas, tar, prod) {
             let new_ubicacion = {
                 ubicacion: ubi.ubicacion,
                 tb_proyecto_ubicaciones_id: ubi.tb_proyecto_ubicaciones_id
             }
 
             let new_fase = {
-                fase: fas.fase,
+                fase: fas.fase_proyecto,
                 c_projectphase_id: fas.c_projectphase_id
             }
 
@@ -364,15 +359,29 @@ angular.module('app', ['ui.router'])
 
         $scope.cambio_ubicacion = function (ubicacion_seleccionada) {
             if (ubicacion_seleccionada === undefined) {
+                $scope.ingenierias = []
+            } else {
+                $scope.ingenierias = ingenierias.filter(f => f.tb_proyecto_ubicaciones_id == ubicacion_seleccionada.tb_proyecto_ubicaciones_id)
+            }
+
+            $scope.ingenieria_seleccionada = $scope.ingenierias[0]
+            $scope.cambio_ingenieria($scope.ingenieria_seleccionada)
+
+        }
+
+        $scope.cambio_ingenieria = function (ingenieria_seleccionada) {
+            if (ingenieria_seleccionada === undefined) {
                 $scope.fases = []
             } else {
-                $scope.fases = fases.filter(f => f.tb_proyecto_ubicaciones_id == ubicacion_seleccionada.tb_proyecto_ubicaciones_id)
+                $scope.fases = fases.filter(f => 
+                    (f.tb_ingenieria_id == ingenieria_seleccionada.tb_ingenieria_id) && 
+                    (f.tb_proyecto_ubicaciones_id == ingenieria_seleccionada.tb_proyecto_ubicaciones_id) )
             }
 
             $scope.fase_seleccionada = $scope.fases[0]
             $scope.cambio_fase($scope.fase_seleccionada)
-
         }
+
 
         $scope.cambio_fase = function (fase_seleccionada) {
             if (fase_seleccionada === undefined) {
@@ -380,6 +389,8 @@ angular.module('app', ['ui.router'])
             } else {
                 $scope.tareas = tareas.filter(t => t.c_projectphase_id == fase_seleccionada.c_projectphase_id)
             }
+
+            console.log('cambio fase', fase_seleccionada)
 
             $scope.tarea_seleccionada = $scope.tareas[0]
             $scope.cambio_tarea($scope.tarea_seleccionada)
@@ -621,11 +632,13 @@ async function loadProyectoData (proyecto) {
         return null;
 
     var ubicaciones_id = new Set( data.map(row => row.tb_proyecto_ubicaciones_id).filter(id => Number(id) >= 1000000) )
+    var ingenierias_id = new Set( data.map(row => row.tb_ingenieria_id).filter(id => Number(id) >= 1000000) )
     var fases_id = new Set( data.map(row => row.c_projectphase_id).filter(id => Number(id) >= 1000000) )
     var tareas_id = new Set( data.map(row => row.c_projecttask_id).filter(id => Number(id) >= 1000000) )
     var productos_id = new Set( data.map(row => row.m_product_id).filter(id => Number(id) >= 1000000) )
 
     var ubicaciones = [...ubicaciones_id].map(id => data.find(row => row.tb_proyecto_ubicaciones_id === id))
+    var ingenierias = [...ingenierias_id].map(id => data.find(row => row.tb_ingenieria_id === id))
     var fases = [...fases_id].map(id => data.find(row => row.c_projectphase_id === id))
     var tareas = [...tareas_id].map(id => data.find(row => row.c_projecttask_id === id))
     var lineas_tarea = [...productos_id].map(id => data.find(row => row.m_product_id === id))
@@ -638,13 +651,28 @@ async function loadProyectoData (proyecto) {
         }
     })
 
+    ingenierias = ingenierias.map(row => {
+        return {
+            ingenieria: row.ingenieria,
+            tb_ingenieria_id: row.tb_ingenieria_id,
+            tb_proyecto_ubicaciones_id: Number(row.tb_proyecto_ubicaciones_id),
+            c_project_id: Number(row.c_project_id)
+        }
+    })
+
     //Fases del proyecto
     fases = fases.map(row => {
         return {
             c_project_id: Number(row.c_project_id),
             tb_proyecto_ubicaciones_id: Number(row.tb_proyecto_ubicaciones_id),
+            tb_ingenieria_id: Number(row.tb_ingenieria_id),
+            tb_fase_id: Number(row.tb_fase_id),
+
+            ingenieria: row.ingenieria,
             fase: row.fase,
-            c_projectphase_id: Number(row.c_projectphase_id)
+            
+            c_projectphase_id: Number(row.c_projectphase_id),
+            fase_proyecto: row.fase_proyecto
         }
     }) 
 
@@ -672,7 +700,7 @@ async function loadProyectoData (proyecto) {
         }
     })
 
-    return {ubicaciones, fases, tareas, lineas_tarea}
+    return {ubicaciones, ingenierias, fases, tareas, lineas_tarea}
 }
 
 
