@@ -14,6 +14,7 @@ router.get('/proyecto/', login.validarSesion, async (req, res, next) => {
         var data = await pool.query(query);
         res.json(parseDBdata(data));  
     } catch (e) {
+        console.error(e)
         next(e)
     }
 })
@@ -26,6 +27,7 @@ router.get('/proyecto/:id', login.validarSesion, async (req, res, next) => {
         var data = await pool.query(query);
         res.json(parseDBdata(data));  
     } catch (e) {
+        console.error(e)
         next(e)
     }
 })
@@ -58,6 +60,7 @@ router.get('/empleados/', login.validarSesion, async function (req, res, next) {
         res.json(rows);
 
     } catch (e) {
+        console.error(e)
         next(e)
     }
 })
@@ -114,6 +117,7 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
         res.send(data);
 
     } catch (e) {
+        console.error(e)
         next(new Error(e)) 
     }    
 })
