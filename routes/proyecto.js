@@ -109,7 +109,7 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
         res.send(data);
 
     } catch (e) {
-        console.error(e)
+        console.log(e)
         next(e) 
     } finally {
         if (filename)
