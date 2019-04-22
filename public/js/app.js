@@ -228,12 +228,11 @@ angular.module('app', ['ui.router'])
                 console.error('error sincronizar', error)
                 $.notify({ title: '<strong>Error de sincronizacion</strong>', message: `${error}`},{ type: 'danger' })
             } finally {
-                waitingDialog.hide();
+                setTimeout(() => {
+                    waitingDialog.hide();
+                }, 500)
             }
         }
-
-
-
 
 
         /**
