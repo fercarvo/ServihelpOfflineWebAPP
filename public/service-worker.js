@@ -7,7 +7,7 @@
  * Este SW servira para incrementar el performance y reducir el trafico de los aplicativos usados en ITSC
  */
 
-const CACHE_NAME = 'ITSC-Servihelp-v1.6-pruebas'
+const CACHE_NAME = 'ITSC-Servihelp-v1.8-pruebas'
 
 const static = [
     '/js/app.js',

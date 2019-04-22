@@ -210,7 +210,7 @@ angular.module('app', ['ui.router'])
 
         $scope.sincronizar = async function (proyecto, informe) {
             
-            document.body.style.pointerEvents = "none" //Se bloquean los clicks
+            waitingDialog.show("Sincronizando información");
 
             try {
                 var respuesta = await guardarInfoGasto(proyecto.c_project_id, informe)
@@ -228,7 +228,7 @@ angular.module('app', ['ui.router'])
                 console.error('error sincronizar', error)
                 $.notify({ title: '<strong>Error de sincronizacion</strong>', message: `${error}`},{ type: 'danger' })
             } finally {
-                document.body.style.pointerEvents = "all" //Se activan nuevamente los clicks
+                waitingDialog.hide();
             }
         }
 
