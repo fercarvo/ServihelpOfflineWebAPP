@@ -6,6 +6,7 @@ var { getSecret } = require('./login')
 var { pool, url } = require('../util/DB.js');
 var { requestWS } = require('nodejs_idempierewebservice')
 var moment = require('moment')
+var fs = require('fs');
 
 
 router.get('/proyecto/', login.validarSesion, async (req, res, next) => {
@@ -83,6 +84,10 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
             lineas: [...req.body.lineas],
             asistencias: [...req.body.asistencias]
         }
+
+        console.log('json', json)
+
+        var filename = createFile(JSON.stringify(json));
         
         //var lineas_proyecto_id = req.body.lineas.map(l => Number(l.c_projectline_id)).join('_')
         //var cantidades = req.body.lineas.map(l => Number(l.qty)).join('_')
@@ -91,6 +96,7 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
         //var asistencia_empleados_id = req.body.asistencias.map(a => Number(a.tercero)).join('_')
         //var asistencia_fechas = req.body.asistencias.map(a => a.fecha).join('_')
         //var asistencias_desde = req.body.asistencias.map(a => a.desde).join('_')
+
         //var asistencias_hasta = req.body.asistencias.map(a => a.hasta).join('_')
 
         var {user, password} = await getSecret(req.session_itsc.ad_user_id);
@@ -105,15 +111,16 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
             {column: 'trabajo_realizado', val: trabajo_realizado},
             {column: 'observacion_cliente', val: observacion_cliente},
             {column: 'datos_tecnicos', val: datos_tecnicos},
-
-
-            {column: "lineas_proyecto_id", val: lineas_proyecto_id},
-            {column: "cantidades", val: cantidades},
             
-            {column: "asistencia_empleados_id", val: asistencia_empleados_id},
-            {column: "asistencia_fechas", val: asistencia_fechas},
-            {column: "asistencias_desde", val: asistencias_desde},
-            {column: "asistencias_hasta", val: asistencias_hasta}
+            {column: 'URL', val: filename}
+
+            //{column: "lineas_proyecto_id", val: lineas_proyecto_id},
+            //{column: "cantidades", val: cantidades},
+            
+            //{column: "asistencia_empleados_id", val: asistencia_empleados_id},
+            //{column: "asistencia_fechas", val: asistencia_fechas},
+            //{column: "asistencias_desde", val: asistencias_desde},
+            //{column: "asistencias_hasta", val: asistencias_hasta},
         ]
 
         console.log('params', params)
@@ -126,6 +133,33 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
         next(new Error(e)) 
     }    
 })
+
+/**
+ * Crea un archivo con nombre aleatorio
+ * @param {string} data informacion que se escribe en el archivo 
+ * @returns {string} file name
+ */
+function createFile (data) {
+    return new Promise((resolve, reject) => {
+        var filename = randomName()+".json"
+        fs.writeFile(`../public/data/${filename}`, data, function(err) {
+            if (err)
+                return reject(`${err}`);
+            
+            resolve(filename)
+        }) 
+    }) 
+}
+
+function randomName () {
+    var text = "";
+    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  
+    for (var i = 0; i < 30; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+  
+    return text;
+}
 
 
 function parseDBdata (data) {
