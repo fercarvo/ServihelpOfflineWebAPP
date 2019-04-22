@@ -78,15 +78,20 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
         
         if (!Array.isArray(req.body.lineas) || req.body.lineas.length === 0)
             throw new Error('No existen lineas de Avance')
+
+        var json = {
+            lineas: [...req.body.lineas],
+            asistencias: [...req.body.asistencias]
+        }
         
-        var lineas_proyecto_id = req.body.lineas.map(l => Number(l.c_projectline_id)).join('_')
-        var cantidades = req.body.lineas.map(l => Number(l.qty)).join('_')
+        //var lineas_proyecto_id = req.body.lineas.map(l => Number(l.c_projectline_id)).join('_')
+        //var cantidades = req.body.lineas.map(l => Number(l.qty)).join('_')
 
         //asistencias
-        var asistencia_empleados_id = req.body.asistencias.map(a => Number(a.tercero)).join('_')
-        var asistencia_fechas = req.body.asistencias.map(a => a.fecha).join('_')
-        var asistencias_desde = req.body.asistencias.map(a => a.desde).join('_')
-        var asistencias_hasta = req.body.asistencias.map(a => a.hasta).join('_')
+        //var asistencia_empleados_id = req.body.asistencias.map(a => Number(a.tercero)).join('_')
+        //var asistencia_fechas = req.body.asistencias.map(a => a.fecha).join('_')
+        //var asistencias_desde = req.body.asistencias.map(a => a.desde).join('_')
+        //var asistencias_hasta = req.body.asistencias.map(a => a.hasta).join('_')
 
         var {user, password} = await getSecret(req.session_itsc.ad_user_id);
 
