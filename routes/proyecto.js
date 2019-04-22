@@ -110,7 +110,7 @@ router.post("/proyecto/avance/:id/", login.validarSesion, async (req, res, next)
 
     } catch (e) {
         console.error(e)
-        next(new Error(e)) 
+        next(e) 
     } finally {
         if (filename)
             fs.unlink(`./public/data/${filename}`, err => err ? console.error("Err Eliminar", err) : console.log('eliminado', filename))
