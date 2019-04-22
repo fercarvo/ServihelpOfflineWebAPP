@@ -105,6 +105,14 @@ angular.module('app', ['ui.router'])
          * Seccion proyectos
          */
         $scope.mostrar_proyectos = true
+
+        $scope.eliminar_proyecto = async (proyecto, index, array) => {
+            if (confirm(`Esta seguro que desea eliminar localmente el proyecto ${proyecto.proyecto}? Accion irreversible!`)) {
+                await deleteProyecto(proyecto);
+                removeIndex(index, array);
+                $scope.$apply();
+            }
+        }
         
         $scope.ver_informes = async proyecto => {
 
@@ -123,6 +131,12 @@ angular.module('app', ['ui.router'])
             $scope.proyecto_actual = proyecto
             console.log('creando avance de proyecto', proyecto)
 
+            if (data === null) {
+                $.notify({ title: 'Proyecto no contiene información', message: ``},{ type: 'danger' })
+                $scope.$apply()
+                return;
+            }
+
             ubicaciones = data.ubicaciones
             ingenierias = data.ingenierias
             fases = data.fases
@@ -134,7 +148,6 @@ angular.module('app', ['ui.router'])
             $scope.fases = fases
             $scope.tareas = tareas
             $scope.lineas_tarea = lineas_tarea
-
             $scope.$apply()
         }
 
@@ -306,14 +319,17 @@ angular.module('app', ['ui.router'])
         /**
          * Seccion lineas informe
          */
+        $scope.generar_todos = function (ubicacion_seleccionada, ingenieria_seleccionada) {
+            var fases_filtro = fases.filter(f => f.tb_ingenieria_id == ingenieria_seleccionada.tb_ingenieria_id)
 
-        $scope.generar_todos = function (ubicacion_seleccionada, fase_seleccionada) {
-            var tareas_filtro = tareas.filter(t => t.c_projectphase_id == fase_seleccionada.c_projectphase_id)
+            for (var fase_seleccionada of fases_filtro) {
+                var tareas_filtro = tareas.filter(t => t.c_projectphase_id == fase_seleccionada.c_projectphase_id)
 
-            for (var tarea_seleccionada of tareas_filtro) {
-                var productos = lineas_tarea.filter(l => l.c_projecttask_id == tarea_seleccionada.c_projecttask_id)
-                for (var producto of productos) {
-                    $scope.nueva_linea(ubicacion_seleccionada, fase_seleccionada, tarea_seleccionada, producto)
+                for (var tarea_seleccionada of tareas_filtro) {
+                    var productos = lineas_tarea.filter(l => l.c_projecttask_id == tarea_seleccionada.c_projecttask_id)
+                    for (var producto of productos) {
+                        $scope.nueva_linea(ubicacion_seleccionada, null, fase_seleccionada, tarea_seleccionada, producto)
+                    }
                 }
             }
         }
@@ -564,6 +580,10 @@ async function guardarInfoGasto(proyecto_id, avance) {
     }    
 }
 
+/**
+ * Obtiene la información almacenada en local de un proyecto o todos los proyectos
+ * @param {number} c_project_id id del proyecto a descargar, si undefined, entonces se descarga la lista de proyectos
+ */
 function getProyectos (c_project_id) {
     function mapProyecto (doc) {
         if (doc.type === 'proyecto') {
@@ -583,6 +603,21 @@ function getProyectos (c_project_id) {
             }           
         })
     })    
+}
+
+/**
+ * 
+ * @param {Object} proyecto proyecto a eliminar
+ * @param {string} proyecto._id id del registro de base local del proyecto
+ * @param {string} proyecto._rev rev del registro de base local del proyecto
+ */
+async function deleteProyecto (proyecto) {
+    try {
+        await db.remove(proyecto._id, proyecto._rev);
+        console.log('Eliminación de proyecto exitosa')
+    } catch (err) {
+        console.error(err)
+    }    
 }
 
 function storageProyecto (data) {
@@ -617,6 +652,11 @@ function storageProyecto (data) {
     })
 }
 
+/**
+ * Carga la información del proyecto.
+ * Esta información viene de la BDD de idempiere, en caso de encontrarse sin conexión, el proyecto se descarga del último cache
+ * @param {*} proyecto 
+ */
 async function loadProyectoData (proyecto) {
     var id = proyecto.c_project_id
     var data = await fetch(`/proyecto/${id}`, {credentials: "same-origin"})

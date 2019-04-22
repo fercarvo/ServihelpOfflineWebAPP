@@ -13,6 +13,7 @@
                     <th scope="col">Proyecto</th>
                     <th scope="col">Descripción</th>
                     <th scope="col">Avance</th>
+                    <th scope="col">Eliminar</th>
                 </tr>
             </thead>
             <tbody>
@@ -23,6 +24,11 @@
                     <td data-title="Avance">
                         <button ng-click="ver_informes(p)" title="Ver/crear avance" class="btn btn-default" aria-label="Left Align">
                             <span class="fa fa-search" aria-hidden="true"></span>
+                        </button>
+                    </td>
+                    <td data-title="Eliminar">
+                        <button ng-click="eliminar_proyecto(p, $index, proyectos)" title="Eliminar avance" class="btn btn-default" aria-label="Left Align">
+                            <span class="fa fa-times" aria-hidden="true"></span>
                         </button>
                     </td>
                 </tr>
@@ -304,7 +310,7 @@
                         <button type="submit" form="ubicacion_select" class="btn btn-info">
                             <span class="fa fa-plus" aria-hidden="true"></span>
                         </button>
-                        <button type="button" class="btn btn-info" ng-click="generar_todos(ubicacion_seleccionada, fase_seleccionada)" title="Generar desde Ubicacion - Ingenieria">
+                        <button type="button" class="btn btn-info" ng-click="generar_todos(ubicacion_seleccionada, ingenieria_seleccionada)" title="Generar desde Ubicacion - Ingenieria">
                             <span class="fa fa-retweet" aria-hidden="true"></span>
                         </button>
                     </div >                    

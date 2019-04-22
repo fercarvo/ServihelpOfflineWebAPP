@@ -7,7 +7,7 @@
  * Este SW servira para incrementar el performance y reducir el trafico de los aplicativos usados en ITSC
  */
 
-const CACHE_NAME = 'Static-ITSC-Servihelp-v2.2'
+const CACHE_NAME = 'ITSC-Servihelp-v1.6-pruebas'
 
 const static = [
     '/js/app.js',
@@ -16,6 +16,8 @@ const static = [
 ]
 
 self.addEventListener('install', function (event) {
+    self.skipWaiting();
+
     event.waitUntil(async function() {
         const cache = await caches.open(CACHE_NAME);
         await cache.addAll(static)
@@ -48,6 +50,9 @@ self.addEventListener('fetch', function(event) {
 
     if (RegExp('/app.js').test( event.request.url ))
         return event.respondWith( cacheThenNetworkUpdate(event) )
+
+    if (RegExp('/views/').test( event.request.url ))
+        return event.respondWith( alwaysCache(event) );    
 
     if (RegExp( '/logout/' ).test( event.request.url ))
         return;
